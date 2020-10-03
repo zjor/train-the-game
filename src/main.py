@@ -6,10 +6,12 @@ import random
 from math import sin, cos, pi
 
 class Colors:	
-	white = 255, 255, 255
+	white = 245, 245, 245
 	black = 0, 0, 0
 	green = 50, 150, 50
 	grey = 50, 50, 50
+	light_grey = 150, 150, 150
+	red = 200, 50, 50
 
 
 class Road:
@@ -43,6 +45,13 @@ class Road:
 			pygame.draw.rect(self.surface, Colors.green, pygame.Rect(0, y, left, dx))
 			pygame.draw.rect(self.surface, Colors.green, pygame.Rect(right, y, self.width - right, dx))
 
+			pygame.draw.rect(self.surface, 
+				Colors.red if int(i / 2) % 2 == 0 else Colors.light_grey, 
+				pygame.Rect(right, y, dx, dx))
+			pygame.draw.rect(self.surface, 
+				Colors.red if int(i / 2) % 2 == 0 else Colors.light_grey, 
+				pygame.Rect(left - dx, y, dx, dx))
+
 			if i % 5 != 0:
 				pygame.draw.rect(self.surface, Colors.white, pygame.Rect(cx, y, dx, dx))
 
@@ -68,15 +77,15 @@ def main():
 	clock = pygame.time.Clock()
 
 	size = width, height = 800, 600	
-	black = (0, 0, 0)
+	road_size = road_width, road_height = 400, 400
 
 	screen = pygame.display.set_mode(size)
 
-	pygame.display.set_caption("Hello PyGame")
+	pygame.display.set_caption("Train the Game")
 
-	road = Road(int(width / 2), height, 100)
-	road.generate_layer()
 
+	road_surface = pygame.Surface(road_size)
+	road = Road(road_width, road_height)
 
 	while True:
 		clock.tick(60)
@@ -86,7 +95,21 @@ def main():
 				sys.exit()
 
 		road.scroll()
-		road.draw(screen)
+		road.draw(road_surface)
+
+		frame_width = 5
+		left = int((width - road_width) / 2)
+		top = int((height - road_height) / 2)
+
+		pygame.draw.rect(screen, 
+			Colors.light_grey, 
+			pygame.Rect(
+				left - frame_width, 
+				top - frame_width, 
+				road_width + frame_width * 2, 
+				road_height + frame_width * 2))
+
+		screen.blit(road_surface, (left, top))
 
 		pygame.display.flip()
 
