@@ -5,3 +5,5 @@ class Colors:
 	grey = 50, 50, 50
 	light_grey = 150, 150, 150
 	red = 200, 50, 50
+	yellow = 240, 230, 140
+	blue = 50, 50, 220
