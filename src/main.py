@@ -14,7 +14,7 @@ class Car:
 		self.height = 50
 		self.angle = 0
 		self.x = 1.0 * screen_width / 2
-		self.velocity = 2
+		self.velocity = 2.5
 		self.vx = 0.0
 		self.vy = 1.0 * self.velocity
 
@@ -67,6 +67,7 @@ def main():
 	road = Road(road_width, road_height)
 
 	car = Car(road_width)
+	road_shift = 0.0
 
 	while True:
 		clock.tick(60)
@@ -81,7 +82,12 @@ def main():
 		elif keys[pygame.K_RIGHT]:
 			car.turn_right()
 
-		road.scroll(velocity=car.vy)
+		road_shift += car.vy
+		if road_shift > 1:
+			for i in range(int(road_shift)):
+				road.scroll()
+			road_shift -= int(road_shift)
+
 		road.draw(road_surface)
 
 		frame_width = 5

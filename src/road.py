@@ -12,7 +12,7 @@ class Road:
 		self.layer_height = layer_height
 
 		self.surface = pygame.Surface((width, height + layer_height))
-		self.offset = 1.0 * layer_height
+		self.offset = layer_height
 		self.road_width = int(3 * width / 5)
 		self.t = 0.0
 
@@ -46,14 +46,14 @@ class Road:
 			if i % 5 != 0:
 				pygame.draw.rect(self.surface, Colors.white, pygame.Rect(cx, y, dx, dx))
 
-		self.offset = 1.0 * self.layer_height
+		self.offset = self.layer_height
 
 
-	def scroll(self, velocity=1.0):
+	def scroll(self):
 		buf = self.surface.copy()
 		self.surface.fill(Colors.black)
-		self.surface.blit(buf, (0, int(velocity)))
-		self.offset -= velocity
+		self.surface.blit(buf, (0, 1))
+		self.offset -= 1
 		if self.offset <= 0:
 			self.generate_layer()
 
