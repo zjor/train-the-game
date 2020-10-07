@@ -6,110 +6,74 @@ import random
 from math import sin, cos, pi
 
 from constants import Colors
+from car import Car
 from road import Road
 
-class Car:
-	def __init__(self, screen_width):
-		self.width = 30
-		self.height = 50
-		self.angle = 0
-		self.x = 1.0 * screen_width / 2
-		self.velocity = 2.5
-		self.vx = 0.0
-		self.vy = 1.0 * self.velocity
+class Game:
+	def __init__(self):
+		self.size = self.width, self.height = 800, 600	
+		self.road_size = self.road_width, self.road_height = 400, 400
 
-	def draw(self):		
-		s = pygame.Surface((self.width, self.height))
-		s.fill(Colors.white)
-		pygame.draw.rect(s, Colors.blue, pygame.Rect(0, 0, self.width, self.height))
-		
-		pygame.draw.rect(s, Colors.yellow, pygame.Rect(0, 0, 10, 10))
-		pygame.draw.rect(s, Colors.yellow, pygame.Rect(self.width - 10, 0, 10, 10))
-		
-		pygame.draw.rect(s, Colors.red, pygame.Rect(0, self.height - 10, 5, 10))
-		pygame.draw.rect(s, Colors.red, pygame.Rect(self.width - 5, self.height - 10, 5, 10))
+		self.screen = pygame.display.set_mode(self.size)
 
-		s = pygame.transform.rotate(s, self.angle)
+		pygame.display.set_caption("Train the Game")
 
-		self.x += self.vx
+		self.road_surface = pygame.Surface(self.road_size)
+		self.road = Road(self.road_width, self.road_height)
 
-		return s
+		self.car = Car(self.road_width)
+		self.road_shift = 0.0
 
-
-	def turn_left(self):
-		self.angle += 1
-		rad = pi * self.angle / 180
-		self.vx = -1.0 * self.velocity * sin(rad)
-		self.vy = 1.0 * self.velocity * cos(rad)
-
-
-	def turn_right(self):
-		self.angle -= 1
-		rad = pi * self.angle / 180
-		self.vx = -1.0 * self.velocity * sin(rad)
-		self.vy = 1.0 * self.velocity * cos(rad)		
-
-
-
-def main():
-	pygame.init()
-	clock = pygame.time.Clock()
-
-	size = width, height = 800, 600	
-	road_size = road_width, road_height = 400, 400
-
-	screen = pygame.display.set_mode(size)
-
-	pygame.display.set_caption("Train the Game")
-
-
-	road_surface = pygame.Surface(road_size)
-	road = Road(road_width, road_height)
-
-	car = Car(road_width)
-	road_shift = 0.0
-
-	while True:
-		clock.tick(60)
-
+	def loop(self):
 		for event in pygame.event.get():
 			if event.type == pygame.QUIT:
 				sys.exit()
 
 		keys = pygame.key.get_pressed()
 		if keys[pygame.K_LEFT]:
-			car.turn_left()
+			self.car.turn_left()
 		elif keys[pygame.K_RIGHT]:
-			car.turn_right()
+			self.car.turn_right()
 
-		road_shift += car.vy
-		if road_shift > 1:
-			for i in range(int(road_shift)):
-				road.scroll()
-			road_shift -= int(road_shift)
+		self.road_shift += self.car.vy
+		if self.road_shift > 1:
+			for i in range(int(self.road_shift)):
+				self.road.scroll()
+			self.road_shift -= int(self.road_shift)
 
-		road.draw(road_surface)
+		self.road.draw(self.road_surface)
 
 		frame_width = 5
-		left = int((width - road_width) / 2)
-		top = int((height - road_height) / 2)
+		left = int((self.width - self.road_width) / 2)
+		top = int((self.height - self.road_height) / 2)
 
-		pygame.draw.rect(screen, 
+		pygame.draw.rect(self.screen, 
 			Colors.light_grey, 
 			pygame.Rect(
 				left - frame_width, 
 				top - frame_width, 
-				road_width + frame_width * 2, 
-				road_height + frame_width * 2))
+				self.road_width + frame_width * 2, 
+				self.road_height + frame_width * 2))
 
-		screen.blit(road_surface, (left, top))
+		self.screen.blit(self.road_surface, (left, top))
 
-		car_surface = car.draw()
+		car_surface = self.car.draw()
 		w, h = car_surface.get_size()
 
-		screen.blit(car_surface, (int((width - road_width) / 2 + car.x - w / 2), int((height + road_height) / 2 - h)))		
+		self.screen.blit(car_surface, (int((self.width - self.road_width) / 2 + self.car.x - w / 2), int((self.height + self.road_height) / 2 - h)))		
 
 		pygame.display.flip()
+
+
+def main():
+	pygame.init()
+	clock = pygame.time.Clock()
+	game = Game()
+
+
+	while True:
+		clock.tick(60)
+		game.loop()		
 
 
 if __name__ == "__main__":
