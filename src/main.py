@@ -3,6 +3,8 @@ import math
 import pygame
 import random
 
+import pygame as pg
+
 from math import sin, cos, pi
 
 from constants import Colors
@@ -24,6 +26,10 @@ class Game:
 		self.car = Car(self.road_width)
 		self.road_shift = 0.0
 
+		self.left = int((self.width - self.road_width) / 2)
+		self.top = int((self.height - self.road_height) / 2)
+
+
 
 	def handle_keyboard(self):
 		keys = pygame.key.get_pressed()
@@ -43,18 +49,35 @@ class Game:
 		self.road.draw(self.road_surface)
 
 		frame_width = 5
-		left = int((self.width - self.road_width) / 2)
-		top = int((self.height - self.road_height) / 2)
 
 		pygame.draw.rect(self.screen, 
 			Colors.light_grey, 
 			pygame.Rect(
-				left - frame_width, 
-				top - frame_width, 
+				self.left - frame_width, 
+				self.top - frame_width, 
 				self.road_width + frame_width * 2, 
 				self.road_height + frame_width * 2))
 
-		self.screen.blit(self.road_surface, (left, top))
+		self.screen.blit(self.road_surface, (self.left, self.top))
+
+
+	def detect_collision(self):
+		car_surface = self.car.draw()
+		car_width, car_height = car_surface.get_size()
+
+		car_mask = pg.mask.from_surface(self.car.draw())
+		road_surface = self.road_surface.copy()
+		road_surface.set_colorkey(Colors.grey)
+		road_mask = pg.mask.from_surface(road_surface)
+
+		road_mask.to_surface(self.screen)
+		x = int(self.car.x - car_width / 2)
+		y = int(self.road_height - 1.5 * car_height)
+		car_mask.to_surface(self.screen, dest=(x, y))
+		overlap = road_mask.overlap(car_mask, (x, y))
+
+		if overlap:
+			pg.draw.circle(self.screen, Colors.red, (overlap[0] + self.left, overlap[1] + self.top), 10)
 
 
 	def draw_car(self):
@@ -74,6 +97,7 @@ class Game:
 		self.handle_keyboard()
 		self.draw_road()
 		self.draw_car()
+		self.detect_collision()
 		pygame.display.flip()
 
 
@@ -83,7 +107,7 @@ def main():
 	game = Game()
 
 	while True:
-		clock.tick(60)
+		clock.tick(45)
 		game.loop()		
 
 
