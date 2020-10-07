@@ -24,17 +24,16 @@ class Game:
 		self.car = Car(self.road_width)
 		self.road_shift = 0.0
 
-	def loop(self):
-		for event in pygame.event.get():
-			if event.type == pygame.QUIT:
-				sys.exit()
 
+	def handle_keyboard(self):
 		keys = pygame.key.get_pressed()
 		if keys[pygame.K_LEFT]:
 			self.car.turn_left()
 		elif keys[pygame.K_RIGHT]:
 			self.car.turn_right()
 
+
+	def draw_road(self):
 		self.road_shift += self.car.vy
 		if self.road_shift > 1:
 			for i in range(int(self.road_shift)):
@@ -57,11 +56,24 @@ class Game:
 
 		self.screen.blit(self.road_surface, (left, top))
 
+
+	def draw_car(self):
 		car_surface = self.car.draw()
 		w, h = car_surface.get_size()
+		x = int((self.width - self.road_width) / 2 + self.car.x - w / 2)
+		y = int((self.height + self.road_height) / 2 - h * 1.5)
 
-		self.screen.blit(car_surface, (int((self.width - self.road_width) / 2 + self.car.x - w / 2), int((self.height + self.road_height) / 2 - h)))		
+		self.screen.blit(car_surface, (x, y))
 
+
+	def loop(self):
+		for event in pygame.event.get():
+			if event.type == pygame.QUIT:
+				sys.exit()
+
+		self.handle_keyboard()
+		self.draw_road()
+		self.draw_car()
 		pygame.display.flip()
 
 
@@ -69,7 +81,6 @@ def main():
 	pygame.init()
 	clock = pygame.time.Clock()
 	game = Game()
-
 
 	while True:
 		clock.tick(60)
