@@ -38,7 +38,7 @@ class Road:
 			self.t += 1
 
 			cx = int((f * (self.road_width / 2) + self.width) / 2)
-			self.x[(n - i - 1) * dx: (n - i)*dx] = [cx] * dx
+			self.x[(n - i - 1) * dx: (n - i)*dx] = [f] * dx
 
 			y = (n - i - 1) * dx
 			left = int(cx - self.road_width / 2)

@@ -3,6 +3,9 @@ import math
 import pygame
 import random
 
+import torch
+
+import numpy as np
 import pygame as pg
 
 from math import sin, cos, pi
@@ -40,6 +43,16 @@ class Game:
 		self.training_data = []
 		self.paused = False
 
+		self.model = torch.nn.Sequential(
+			torch.nn.Linear(3, 5),
+			torch.nn.ReLU(),
+			torch.nn.Linear(5, 3))
+		self.model.load_state_dict(torch.load("nn_state.pt"))
+
+
+	def train(self):
+		pass
+
 
 	def handle_keyboard(self):
 		keys = pg.key.get_pressed()
@@ -54,6 +67,8 @@ class Game:
 			if keys[pg.K_t]:
 				self.paused = not self.paused
 				print(self.training_data)
+				sys.exit()
+				self.train()
 
 			self.last_command = Game.COMMAND_STRAIGHT
 
@@ -100,7 +115,14 @@ class Game:
 
 		# for (y, x) in enumerate(self.road.x):
 		# 	pg.draw.circle(self.screen, Colors.yellow, (int(x), y), 1)
-		self.training_data.append((self.road.x[y], self.car.angle, self.last_command))
+		# self.training_data.append((self.road.x[y], self.car.angle, self.car.x / self.road_width, self.last_command))
+		pred = self.model(torch.tensor([self.road.x[y], self.car.angle / 90, self.car.x / self.road_width]))
+		pred = pred.tolist()
+		command = pred.index(max(pred)) - 1
+		if command == Game.COMMAND_LEFT:
+			self.car.turn_left()
+		elif command == Game.COMMAND_RIGHT:
+			self.car.turn_right()
 
 
 	def draw_car(self):

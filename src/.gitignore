@@ -1,2 +1,4 @@
 __pycache__/
 *.pyc
+
+nn_state.pt
