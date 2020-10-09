@@ -11,7 +11,12 @@ from constants import Colors
 from car import Car
 from road import Road
 
+
 class Game:
+	COMMAND_STRAIGHT = 0
+	COMMAND_LEFT = -1
+	COMMAND_RIGHT = 1
+
 	def __init__(self):
 		self.size = self.width, self.height = 800, 600	
 		self.road_size = self.road_width, self.road_height = 400, 400
@@ -29,15 +34,28 @@ class Game:
 
 		self.left = int((self.width - self.road_width) / 2)
 		self.top = int((self.height - self.road_height) / 2)
-
+		
+		# -1 - turn left, 0 - stay straight, 1 - turn right 
+		self.last_command = Game.COMMAND_STRAIGHT
+		self.training_data = []
+		self.paused = False
 
 
 	def handle_keyboard(self):
-		keys = pygame.key.get_pressed()
-		if keys[pygame.K_LEFT]:
+		keys = pg.key.get_pressed()
+		if keys[pg.K_LEFT]:
 			self.car.turn_left()
-		elif keys[pygame.K_RIGHT]:
+			self.last_command = Game.COMMAND_LEFT
+		elif keys[pg.K_RIGHT]:
 			self.car.turn_right()
+			self.last_command = Game.COMMAND_RIGHT
+		else:
+
+			if keys[pg.K_t]:
+				# self.paused = not self.paused
+				print(self.training_data)
+
+			self.last_command = Game.COMMAND_STRAIGHT
 
 
 	def draw_road(self):
@@ -80,7 +98,9 @@ class Game:
 		if overlap:
 			pg.draw.circle(self.screen, Colors.red, (overlap[0] + self.left, overlap[1] + self.top), 10)
 
-		print(self.road.x[-1])
+		# for (y, x) in enumerate(self.road.x):
+		# 	pg.draw.circle(self.screen, Colors.yellow, (int(x), y), 1)
+		self.training_data.append((self.road.x[y], self.car.angle, self.last_command))
 
 
 	def draw_car(self):
@@ -98,6 +118,7 @@ class Game:
 				sys.exit()
 
 		self.handle_keyboard()
+		# if not self.paused:
 		self.draw_road()
 		self.draw_car()
 		self.detect_collision()
@@ -110,6 +131,7 @@ def main():
 	game = Game()
 
 	while True:
+	# for i in range(20):
 		clock.tick(45)
 		game.loop()		
 

@@ -22,8 +22,8 @@ class Road:
 		self.t = 0.0
 
 		self.dx = 5
-
-		self.x = [0] * ((height + layer_height) // self.dx)
+		# road curve x
+		self.x = [0] * (height + layer_height)
 
 		self.generate_layer(True)		
 
@@ -31,15 +31,16 @@ class Road:
 	def generate_layer(self, full_height=False):
 		max_height = (self.layer_height + self.height) if full_height else self.layer_height
 		dx = self.dx
-
-		for i in range(int(max_height / dx)):
+		n = max_height // dx
+		for i in range(n):
 			w = 2.0 * pi * self.t / 20.0
 			f = (0.2 * sin(w / 3) + 0.5 * cos(w / 5) + 0.5 * sin(w / 7))
 			self.t += 1
 
 			cx = int((f * (self.road_width / 2) + self.width) / 2)
-			self.x[i] = cx
-			y = (int(max_height / dx) - i - 1) * dx
+			self.x[(n - i - 1) * dx: (n - i)*dx] = [cx] * dx
+
+			y = (n - i - 1) * dx
 			left = int(cx - self.road_width / 2)
 			right = int(cx + self.road_width / 2)
 
@@ -70,8 +71,7 @@ class Road:
 		self._scroll(self.surface)
 		self._scroll(self.traffic_line_surface)
 
-		for i in reversed(range(1, len(self.x))):
-			self.x[i] = self.x[i - 1]
+		self.x = [0] + self.x[:-1]
 
 		self.offset -= 1
 		if self.offset <= 0:
