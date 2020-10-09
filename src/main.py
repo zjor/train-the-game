@@ -52,7 +52,7 @@ class Game:
 		else:
 
 			if keys[pg.K_t]:
-				# self.paused = not self.paused
+				self.paused = not self.paused
 				print(self.training_data)
 
 			self.last_command = Game.COMMAND_STRAIGHT
@@ -118,10 +118,10 @@ class Game:
 				sys.exit()
 
 		self.handle_keyboard()
-		# if not self.paused:
-		self.draw_road()
-		self.draw_car()
-		self.detect_collision()
+		if not self.paused:
+			self.draw_road()
+			self.draw_car()
+			self.detect_collision()
 		pygame.display.flip()
 
 
