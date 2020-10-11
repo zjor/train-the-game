@@ -47,13 +47,13 @@ class Cortex:
 
 if __name__ == "__main__":
     training_filename = "training_data.txt"
-    # cortex = Cortex()
-    # cortex.train(training_filename)
-    # cortex.save("model.dump")
-
     cortex = Cortex()
-    cortex.load("model.dump")
-    print(cortex.predict([200, 180]))
+    cortex.train(training_filename)
+    cortex.save("model.dump")
+
+    # cortex = Cortex()
+    # cortex.load("model.dump")
+    # print(cortex.predict([200, 180]))
 
 
 

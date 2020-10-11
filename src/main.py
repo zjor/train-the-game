@@ -159,7 +159,6 @@ def main():
 	game = Game(mode=Game.MODE_AUTOPILOT)
 
 	while True:
-	# for i in range(20):
 		clock.tick(45)
 		game.loop()		
 
