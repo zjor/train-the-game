@@ -11,7 +11,9 @@ from math import sin, cos, pi
 from constants import Colors
 from car import Car
 from road import Road
+
 from cortex import Cortex
+from torch_cortex import TorchCortex
 
 
 class Game:
@@ -25,7 +27,6 @@ class Game:
 	def __init__(self, mode=MODE_COLLECT_DATA):
 		self.mode = mode
 
-		self.nn_state_filename = "nn_state.pt"
 		self.training_data_filename = "training_data.txt"
 
 		self.size = self.width, self.height = 800, 600	
@@ -50,12 +51,11 @@ class Game:
 		self.paused = False
 
 		self.cortex = Cortex()
+		self.torch_cortex = TorchCortex()
+
 		if mode == Game.MODE_AUTOPILOT:
 			self.cortex.load("model.dump")
-
-
-	def train(self):
-		pass
+			self.torch_cortex.load("torch_model.dump")
 
 
 	def handle_keyboard(self):
@@ -124,7 +124,8 @@ class Game:
 				f.write("\n")
 		else:
 			angle = self.car.angle
-			desired_angle = self.cortex.predict([self.road.x[y], self.car.x])
+			desired_angle = self.torch_cortex.predict([self.road.x[y], self.car.x])
+			# desired_angle = self.cortex.predict([self.road.x[y], self.car.x])
 			if angle > desired_angle:
 				self.car.turn_right()
 			elif angle < desired_angle:
@@ -156,7 +157,7 @@ class Game:
 def main():
 	pygame.init()
 	clock = pygame.time.Clock()
-	game = Game(mode=Game.MODE_COLLECT_DATA)
+	game = Game(mode=Game.MODE_AUTOPILOT)
 
 	while True:
 		clock.tick(45)

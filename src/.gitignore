@@ -3,4 +3,4 @@ __pycache__/
 *.pyc
 
 nn_state.pt
-model.dump
+*.dump

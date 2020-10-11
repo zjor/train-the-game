@@ -41,7 +41,7 @@ class Cortex:
 
     def predict(self, data):
         if not self.initialized:
-            raise Error("Model is not initialized")
+            raise Exception("Model is not initialized")
         return self.model.predict([data])[0][0]
 
 
