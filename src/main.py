@@ -3,8 +3,6 @@ import math
 import pygame
 import random
 
-import torch
-
 import numpy as np
 import pygame as pg
 
@@ -13,6 +11,7 @@ from math import sin, cos, pi
 from constants import Colors
 from car import Car
 from road import Road
+from cortex import Cortex
 
 
 class Game:
@@ -20,7 +19,15 @@ class Game:
 	COMMAND_LEFT = -1
 	COMMAND_RIGHT = 1
 
-	def __init__(self):
+	MODE_COLLECT_DATA = 0
+	MODE_AUTOPILOT = 1
+
+	def __init__(self, mode=MODE_COLLECT_DATA):
+		self.mode = mode
+
+		self.nn_state_filename = "nn_state.pt"
+		self.training_data_filename = "training_data.txt"
+
 		self.size = self.width, self.height = 800, 600	
 		self.road_size = self.road_width, self.road_height = 400, 400
 
@@ -40,14 +47,11 @@ class Game:
 		
 		# -1 - turn left, 0 - stay straight, 1 - turn right 
 		self.last_command = Game.COMMAND_STRAIGHT
-		self.training_data = []
 		self.paused = False
 
-		self.model = torch.nn.Sequential(
-			torch.nn.Linear(3, 5),
-			torch.nn.ReLU(),
-			torch.nn.Linear(5, 3))
-		self.model.load_state_dict(torch.load("nn_state.pt"))
+		self.cortex = Cortex()
+		if mode == Game.MODE_AUTOPILOT:
+			self.cortex.load("model.dump")
 
 
 	def train(self):
@@ -66,9 +70,6 @@ class Game:
 
 			if keys[pg.K_t]:
 				self.paused = not self.paused
-				print(self.training_data)
-				sys.exit()
-				self.train()
 
 			self.last_command = Game.COMMAND_STRAIGHT
 
@@ -113,16 +114,21 @@ class Game:
 		if overlap:
 			pg.draw.circle(self.screen, Colors.red, (overlap[0] + self.left, overlap[1] + self.top), 10)
 
-		# for (y, x) in enumerate(self.road.x):
-		# 	pg.draw.circle(self.screen, Colors.yellow, (int(x), y), 1)
-		# self.training_data.append((self.road.x[y], self.car.angle, self.car.x / self.road_width, self.last_command))
-		pred = self.model(torch.tensor([self.road.x[y], self.car.angle / 90, self.car.x / self.road_width]))
-		pred = pred.tolist()
-		command = pred.index(max(pred)) - 1
-		if command == Game.COMMAND_LEFT:
-			self.car.turn_left()
-		elif command == Game.COMMAND_RIGHT:
-			self.car.turn_right()
+		if self.mode == Game.MODE_COLLECT_DATA:
+			with open(self.training_data_filename, "a+") as f:
+				line = [
+					self.road.x[y],
+					self.car.x, 
+					self.car.angle]
+				f.write(" ".join(map(str, line)))
+				f.write("\n")
+		else:
+			angle = self.car.angle
+			desired_angle = self.cortex.predict([self.road.x[y], self.car.x])
+			if angle > desired_angle:
+				self.car.turn_right()
+			elif angle < desired_angle:
+				self.car.turn_left()
 
 
 	def draw_car(self):
@@ -150,7 +156,7 @@ class Game:
 def main():
 	pygame.init()
 	clock = pygame.time.Clock()
-	game = Game()
+	game = Game(mode=Game.MODE_AUTOPILOT)
 
 	while True:
 	# for i in range(20):
