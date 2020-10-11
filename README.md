@@ -25,3 +25,12 @@ A new angle of the car.
 
 - PyTorch
 - PyGame
+
+
+## TODO
+- refactor PyTorch code with (https://pytorch.org/tutorials/beginner/nn_tutorial.html)
+- add gifs and graphs to README
+- first article to medium
+- train NN to predict commands without rotating a car (so that training data contains more examples of LEFT, RIGHT commands)
+- switch to image processing in front of the car
+- add obstacles
