@@ -156,7 +156,7 @@ class Game:
 def main():
 	pygame.init()
 	clock = pygame.time.Clock()
-	game = Game(mode=Game.MODE_AUTOPILOT)
+	game = Game(mode=Game.MODE_COLLECT_DATA)
 
 	while True:
 		clock.tick(45)

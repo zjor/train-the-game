@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as pp
 
 data = []
-with open("training_data.txt") as f:
+with open("data.txt") as f:
 	for line in f.readlines():
 		line = list(map(float, line.strip().split(" ")))
 		data.append(line)
