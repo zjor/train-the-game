@@ -2,18 +2,17 @@ import math
 import torch
 import torch.nn.functional as F
 import numpy as np
-from torch import nn
-from torch.autograd import Variable
+from torch import nn, optim
+from torch.utils.data import TensorDataset
 
 
 class LinearRegression(nn.Module):
     def __init__(self):
         super().__init__()
-        self.weights = nn.Parameter(torch.randn(2, 1) / math.sqrt(2))
-        self.bias = nn.Parameter(torch.zeros(1))
+        self.layer = nn.Linear(2, 1)
 
-    def forward(self, xb):
-        return xb @ self.weights + self.bias
+    def forward(self, x):
+        return self.layer(x)
 
 
 class TorchCortex:
@@ -29,32 +28,30 @@ class TorchCortex:
                 line = list(map(float, line.strip().split(" ")))
                 data.append(line)
         data = np.matrix(data)
-        X = data[:, 0:2]
-        y = data[:, 2]
-        return torch.tensor(X, dtype=torch.float), torch.tensor(y, dtype=torch.float)
+        X = torch.tensor(data[:, 0:2], dtype=torch.float)
+        y = torch.tensor(data[:, 2], dtype=torch.float)
+        return TensorDataset(X, y)
 
 
-    def train(self, X, y):
+    def train(self, dataset):
         model = self.model
         loss_func = F.mse_loss
 
-        n = X.size()[0]
+        n = len(dataset)
         lr = 1e-7
         bs = 50
 
+        opt = optim.SGD(model.parameters(), lr=lr)
         for epoch in range(2000):
             for i in range((n - 1) // bs + 1):
-                start_i = i * bs
-                end_i = start_i + bs
-                xb = X[start_i:end_i]
-                yb = y[start_i:end_i]
+
+                xb, yb = dataset[i * bs: (i + 1) * bs]
+
                 pred = model(xb)
                 loss = loss_func(pred, yb)
                 loss.backward()
-                with torch.no_grad():
-                    for p in model.parameters():
-                        p -= p.grad * lr
-                    model.zero_grad()
+                opt.step()
+                opt.zero_grad()
             if epoch % 50 == 0:
                 print(loss)
         self.initialized = True
@@ -75,11 +72,11 @@ class TorchCortex:
 
 if __name__ == "__main__":
     cortex = TorchCortex()
-    # X, y = cortex.load_data("../jupiter/data/data.txt")
-    # cortex.train(X, y)
-    # cortex.save("torch_model.dump")
+    dataset = cortex.load_data("../jupiter/data/data.txt")
+    cortex.train(dataset)
+    cortex.save("torch_model.dump")
 
-    cortex.load("torch_model.dump")
-    print(cortex.predict([200, 200]))
+    # cortex.load("torch_model.dump")
+    # print(cortex.predict([200, 200]))
 
 

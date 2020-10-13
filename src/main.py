@@ -32,12 +32,12 @@ class Game:
 		self.size = self.width, self.height = 800, 600	
 		self.road_size = self.road_width, self.road_height = 400, 400
 
-		self.screen = pygame.display.set_mode(self.size)
+		self.screen = pg.display.set_mode(self.size)
 
-		pygame.display.set_caption("Train the Game")
+		pg.display.set_caption("Train the Game")
 
-		self.road_surface = pygame.Surface(self.road_size)
-		self.pure_road_surface = pygame.Surface(self.road_size)
+		self.road_surface = pg.Surface(self.road_size)
+		self.pure_road_surface = pg.Surface(self.road_size)
 		self.road = Road(self.road_width, self.road_height)
 
 		self.car = Car(self.road_width)
