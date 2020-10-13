@@ -1,8 +1,10 @@
 import numpy as np
 import matplotlib.pyplot as pp
 
+filename = "training_data.txt"
+
 data = []
-with open("data.txt") as f:
+with open(filename) as f:
 	for line in f.readlines():
 		line = list(map(float, line.strip().split(" ")))
 		data.append(line)

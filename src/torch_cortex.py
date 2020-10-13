@@ -70,7 +70,8 @@ class TorchCortex:
 
 if __name__ == "__main__":
     cortex = TorchCortex()
-    dataset = cortex.load_data("../jupiter/data/data.txt")
+    # dataset = cortex.load_data("../jupiter/data/data.txt")
+    dataset = cortex.load_data("training_data.txt")
     cortex.train(dataset)
     cortex.save("torch_model.dump")
 

@@ -28,6 +28,7 @@ class Game:
 		self.mode = mode
 
 		self.training_data_filename = "training_data.txt"
+		self.training_data = []
 
 		self.size = self.width, self.height = 800, 600	
 		self.road_size = self.road_width, self.road_height = 400, 400
@@ -58,6 +59,13 @@ class Game:
 			self.torch_cortex.load("torch_model.dump")
 
 
+	def dump_training_data(self):
+		with open(self.training_data_filename, "w") as f:
+			for line in self.training_data:
+				f.write(" ".join(map(str, line)))
+				f.write("\n")
+
+
 	def handle_keyboard(self):
 		keys = pg.key.get_pressed()
 		if keys[pg.K_LEFT]:
@@ -69,7 +77,8 @@ class Game:
 		else:
 
 			if keys[pg.K_t]:
-				self.paused = not self.paused
+				self.paused = True
+				self.dump_training_data()
 
 			self.last_command = Game.COMMAND_STRAIGHT
 
@@ -115,13 +124,10 @@ class Game:
 			pg.draw.circle(self.screen, Colors.red, (overlap[0] + self.left, overlap[1] + self.top), 10)
 
 		if self.mode == Game.MODE_COLLECT_DATA:
-			with open(self.training_data_filename, "a+") as f:
-				line = [
+				self.training_data.append([
 					self.road.x[y],
 					self.car.x, 
-					self.car.angle]
-				f.write(" ".join(map(str, line)))
-				f.write("\n")
+					self.car.angle])
 		else:
 			angle = self.car.angle
 			desired_angle = self.torch_cortex.predict([self.road.x[y], self.car.x])
