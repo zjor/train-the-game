@@ -6,18 +6,22 @@ from torch import nn, optim
 from torch.utils.data import TensorDataset, DataLoader
 
 
-class LinearRegression(nn.Module):
+class Net(nn.Module):
     def __init__(self):
         super().__init__()
-        self.layer = nn.Linear(2, 1)
+        self.model = nn.Sequential(
+            nn.Linear(3, 2),
+            nn.ReLU(),
+            nn.Linear(2, 1)
+            )
 
     def forward(self, x):
-        return self.layer(x)
+        return self.model(x)
 
 
 class TorchCortex:
     def __init__(self):
-        self.model = LinearRegression()
+        self.model = Net()
         self.initialized = False
 
 
@@ -28,8 +32,8 @@ class TorchCortex:
                 line = list(map(float, line.strip().split(" ")))
                 data.append(line)
         data = np.matrix(data)
-        X = torch.tensor(data[:, 0:2], dtype=torch.float)
-        y = torch.tensor(data[:, 2], dtype=torch.float)
+        X = torch.tensor(data[:, 0:3], dtype=torch.float)
+        y = torch.tensor(data[:, 3], dtype=torch.float)
         return TensorDataset(X, y)
 
 
@@ -41,7 +45,7 @@ class TorchCortex:
         bs = 50
 
         opt = optim.SGD(model.parameters(), lr=lr)
-        loader = DataLoader(dataset, batch_size=bs, shuffle=True)
+        loader = DataLoader(dataset, batch_size=bs, shuffle=False)
 
         for epoch in range(2000):
             for xb, yb in loader:

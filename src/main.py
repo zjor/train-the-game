@@ -123,14 +123,12 @@ class Game:
 		if overlap:
 			pg.draw.circle(self.screen, Colors.red, (overlap[0] + self.left, overlap[1] + self.top), 10)
 
+		data_row = [self.road.x[y - car_height], self.road.x[y], self.car.x]
 		if self.mode == Game.MODE_COLLECT_DATA:
-				self.training_data.append([
-					self.road.x[y],
-					self.car.x, 
-					self.car.angle])
+				self.training_data.append(data_row + [self.car.angle])
 		else:
 			angle = self.car.angle
-			desired_angle = self.torch_cortex.predict([self.road.x[y], self.car.x])
+			desired_angle = self.torch_cortex.predict(data_row)
 			# desired_angle = self.cortex.predict([self.road.x[y], self.car.x])
 			if angle > desired_angle:
 				self.car.turn_right()
