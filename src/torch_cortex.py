@@ -3,7 +3,7 @@ import torch
 import torch.nn.functional as F
 import numpy as np
 from torch import nn, optim
-from torch.utils.data import TensorDataset
+from torch.utils.data import TensorDataset, DataLoader
 
 
 class LinearRegression(nn.Module):
@@ -36,17 +36,15 @@ class TorchCortex:
     def train(self, dataset):
         model = self.model
         loss_func = F.mse_loss
-
-        n = len(dataset)
+        
         lr = 1e-7
         bs = 50
 
         opt = optim.SGD(model.parameters(), lr=lr)
+        loader = DataLoader(dataset, batch_size=bs, shuffle=True)
+
         for epoch in range(2000):
-            for i in range((n - 1) // bs + 1):
-
-                xb, yb = dataset[i * bs: (i + 1) * bs]
-
+            for xb, yb in loader:
                 pred = model(xb)
                 loss = loss_func(pred, yb)
                 loss.backward()
