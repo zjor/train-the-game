@@ -84,7 +84,7 @@ class Game:
 
 
 	def draw_road(self):
-		self.road_shift += self.car.vy
+		self.road_shift += self.car.velocity
 		if self.road_shift > 1:
 			for i in range(int(self.road_shift)):
 				self.road.scroll()
@@ -123,9 +123,13 @@ class Game:
 		if overlap:
 			pg.draw.circle(self.screen, Colors.red, (overlap[0] + self.left, overlap[1] + self.top), 10)
 
+		self.drive_or_collect_data(y, car_height)
+
+
+	def drive_or_collect_data(self, y, car_height):
 		data_row = [self.road.x[y - car_height], self.road.x[y], self.car.x]
 		if self.mode == Game.MODE_COLLECT_DATA:
-				self.training_data.append(data_row + [self.car.angle])
+				self.training_data.append(data_row + [self.last_command])
 		else:
 			angle = self.car.angle
 			desired_angle = self.torch_cortex.predict(data_row)
@@ -161,7 +165,7 @@ class Game:
 def main():
 	pygame.init()
 	clock = pygame.time.Clock()
-	game = Game(mode=Game.MODE_AUTOPILOT)
+	game = Game(mode=Game.MODE_COLLECT_DATA)
 
 	while True:
 		clock.tick(45)

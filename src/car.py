@@ -1,49 +1,52 @@
 import math
-import pygame
+import pygame as pg
+import numpy as np
 from math import sin, cos, pi
 
 from constants import Colors
+from ray import Ray
 
 
 class Car:
-	def __init__(self, screen_width):
+	def __init__(self, origin, velocity=2.0, lidar_count=6):
 		self.width = 30
 		self.height = 50
-		self.angle = 0
-		self.x = 1.0 * screen_width / 2
-		self.velocity = 2.5
-		self.vx = 0.0
-		self.vy = 1.0 * self.velocity
+		self.x, self.y = origin
+		self.velocity = velocity
+		self.angle = pi/12
+		self.lidars = np.linspace(.0, np.pi, lidar_count)
 
-	def draw(self):		
-		s = pygame.Surface((self.width, self.height))
+
+	def get_lidar_readings(self, road_mask, threshold):
+		readings = []
+		for theta in self.lidars:
+			ray = Ray(origin=(self.x, self.y), theta=(theta + self.angle))
+			readings.append(ray.get_collision(road_mask, threshold))
+
+		return readings
+
+
+	def draw(self, surface):		
+		s = pg.Surface((self.width, self.height))
 		s.fill(Colors.white)
-		pygame.draw.rect(s, Colors.blue, pygame.Rect(0, 0, self.width, self.height))
+		pg.draw.rect(s, Colors.blue, pg.Rect(0, 0, self.width, self.height))
 		
-		pygame.draw.rect(s, Colors.yellow, pygame.Rect(0, 0, 10, 10))
-		pygame.draw.rect(s, Colors.yellow, pygame.Rect(self.width - 10, 0, 10, 10))
+		pg.draw.rect(s, Colors.yellow, pg.Rect(0, 0, 10, 10))
+		pg.draw.rect(s, Colors.yellow, pg.Rect(self.width - 10, 0, 10, 10))
 		
-		pygame.draw.rect(s, Colors.red, pygame.Rect(0, self.height - 10, 5, 10))
-		pygame.draw.rect(s, Colors.red, pygame.Rect(self.width - 5, self.height - 10, 5, 10))
+		pg.draw.rect(s, Colors.red, pg.Rect(0, self.height - 10, 5, 10))
+		pg.draw.rect(s, Colors.red, pg.Rect(self.width - 5, self.height - 10, 5, 10))
 
-		s = pygame.transform.rotate(s, self.angle)
+		s = pg.transform.rotate(s, math.degrees(self.angle))
+		
+		car_rect = s.get_rect()
 
-		self.x += self.vx
-
-		return s
-
-
-	def update_velocity(self):
-		rad = math.radians(self.angle)
-		self.vx = -1.0 * self.velocity * sin(rad)
-		self.vy = 1.0 * self.velocity * cos(rad)		
+		surface.blit(s, (self.x - car_rect.centerx, self.y - car_rect.centery))
 
 
 	def turn_left(self):
-		self.angle += 1
-		self.update_velocity()
+		self.x -= 1
 
 
 	def turn_right(self):
-		self.angle -= 1
-		self.update_velocity()
+		self.x += 1
