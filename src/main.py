@@ -107,6 +107,15 @@ class Game:
 		self.screen.blit(self.road_surface, (self.left, self.top))
 
 
+	def draw_lidars(self):
+		road_mask = self.road.get_mask()
+		x, y = int(self.car.x), int(self.car.y)
+		readings = self.car.get_lidar_readings(road_mask, 400)
+		for r in readings:
+			pg.draw.line(self.road_surface, Colors.yellow, (x, y), r[0])
+			pg.draw.circle(self.road_surface, Colors.red, r[0], 5)
+
+
 	def detect_collision(self):
 		car_surface = self.car.draw()
 		car_width, car_height = car_surface.get_size()
@@ -115,10 +124,10 @@ class Game:
 		road_mask = self.road.get_mask()
 
 		# road_mask.to_surface(self.screen)
-		x = int(self.car.x - car_width / 2)
-		y = int(self.road_height - 1.5 * car_height)
+
+		x, y = int(self.car.x), int(self.car.y)
 		# car_mask.to_surface(self.screen, dest=(x, y))
-		overlap = road_mask.overlap(car_mask, (x, y))
+		overlap = road_mask.overlap(car_mask, (x - car_width // 2, y - car_height // 2))
 		if overlap:
 			pg.draw.circle(self.road_surface, Colors.red, overlap, 10)
 
@@ -154,6 +163,7 @@ class Game:
 		self.handle_keyboard()
 		if not self.paused:
 			self.draw_road()
+			self.draw_lidars()
 			self.draw_car()
 			self.detect_collision()
 			self.draw_road_surface()			
