@@ -38,10 +38,9 @@ class Game:
 		pg.display.set_caption("Train the Game")
 
 		self.road_surface = pg.Surface(self.road_size)
-		self.pure_road_surface = pg.Surface(self.road_size)
 		self.road = Road(self.road_width, self.road_height)
 
-		self.car = Car(self.road_width)
+		self.car = Car(origin=(self.road_width / 2, self.road_height - 50))
 		self.road_shift = 0.0
 
 		self.left = int((self.width - self.road_width) / 2)
@@ -84,23 +83,26 @@ class Game:
 
 
 	def draw_road(self):
-		self.road_shift += self.car.velocity
+		self.road_shift += self.car.get_vy()
 		if self.road_shift > 1:
 			for i in range(int(self.road_shift)):
 				self.road.scroll()
 			self.road_shift -= int(self.road_shift)
 
-		self.pure_road_surface = self.road.draw(self.road_surface)
+		self.road.draw(self.road_surface)
 
+
+	def draw_road_surface(self):
 		frame_width = 5
 
-		pygame.draw.rect(self.screen, 
+		pg.draw.rect(self.screen, 
 			Colors.light_grey, 
 			pygame.Rect(
 				self.left - frame_width, 
 				self.top - frame_width, 
 				self.road_width + frame_width * 2, 
 				self.road_height + frame_width * 2))
+
 
 		self.screen.blit(self.road_surface, (self.left, self.top))
 
@@ -109,21 +111,20 @@ class Game:
 		car_surface = self.car.draw()
 		car_width, car_height = car_surface.get_size()
 
-		car_mask = pg.mask.from_surface(self.car.draw())
-		road_surface = self.pure_road_surface.copy()
-		road_surface.set_colorkey(Colors.grey)
-		road_mask = pg.mask.from_surface(road_surface)
+		car_mask = self.car.get_mask()
+		road_mask = self.road.get_mask()
 
 		# road_mask.to_surface(self.screen)
 		x = int(self.car.x - car_width / 2)
 		y = int(self.road_height - 1.5 * car_height)
 		# car_mask.to_surface(self.screen, dest=(x, y))
 		overlap = road_mask.overlap(car_mask, (x, y))
-
 		if overlap:
-			pg.draw.circle(self.screen, Colors.red, (overlap[0] + self.left, overlap[1] + self.top), 10)
+			pg.draw.circle(self.road_surface, Colors.red, overlap, 10)
 
 		self.drive_or_collect_data(y, car_height)
+
+		
 
 
 	def drive_or_collect_data(self, y, car_height):
@@ -141,12 +142,8 @@ class Game:
 
 
 	def draw_car(self):
-		car_surface = self.car.draw()
-		w, h = car_surface.get_size()
-		x = int((self.width - self.road_width) / 2 + self.car.x - w / 2)
-		y = int((self.height + self.road_height) / 2 - h * 1.5)
-
-		self.screen.blit(car_surface, (x, y))
+		self.car.advance()
+		car_surface = self.car.draw(self.road_surface)
 
 
 	def loop(self):
@@ -159,6 +156,7 @@ class Game:
 			self.draw_road()
 			self.draw_car()
 			self.detect_collision()
+			self.draw_road_surface()			
 		pygame.display.flip()
 
 
