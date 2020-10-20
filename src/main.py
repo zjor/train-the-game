@@ -40,7 +40,7 @@ class Game:
 		self.road_surface = pg.Surface(self.road_size)
 		self.road = Road(self.road_width, self.road_height)
 
-		self.car = Car(origin=(self.road_width / 2, self.road_height - 50))
+		self.car = Car(origin=(self.road_width / 2, self.road_height - 50), lidar_count=2)
 		self.road_shift = 0.0
 
 		self.left = int((self.width - self.road_width) / 2)
@@ -135,18 +135,18 @@ class Game:
 		# car_mask.to_surface(self.screen, dest=(x, y))
 		overlap = road_mask.overlap(car_mask, (x - car_width // 2, y - car_height // 2))
 		if overlap:
-			pg.draw.circle(self.road_surface, Colors.red, overlap, 10)
-
-		self.drive_or_collect_data(y, car_height)
+			pg.draw.circle(self.road_surface, Colors.red, overlap, 10)		
 
 		
-	def drive_or_collect_data(self, y, car_height):
-		data_row = [self.road.x[y - car_height], self.road.x[y], self.car.x]
+	def drive_or_collect_data(self):
+		if len(self.training_data) == 0:
+			return
+
 		if self.mode == Game.MODE_COLLECT_DATA:
 			pass				
 		else:
 			angle = self.car.angle
-			desired_angle = self.torch_cortex.predict(data_row)
+			desired_angle = self.torch_cortex.predict(self.training_data[-1][:-1])
 			# desired_angle = self.cortex.predict([self.road.x[y], self.car.x])
 			if angle > desired_angle:
 				self.car.turn_right()
@@ -170,14 +170,16 @@ class Game:
 			self.draw_lidars()
 			self.draw_car()
 			self.detect_collision()
-			self.draw_road_surface()			
+			self.draw_road_surface()
+			self.drive_or_collect_data()			
 		pygame.display.flip()
 
 
 def main():
 	pygame.init()
 	clock = pygame.time.Clock()
-	game = Game(mode=Game.MODE_COLLECT_DATA)
+	# game = Game(mode=Game.MODE_COLLECT_DATA)
+	game = Game(mode=Game.MODE_AUTOPILOT)
 
 	while True:
 		clock.tick(45)

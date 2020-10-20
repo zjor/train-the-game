@@ -10,9 +10,9 @@ class Net(nn.Module):
     def __init__(self):
         super().__init__()
         self.model = nn.Sequential(
-            nn.Linear(3, 2),
-            nn.ReLU(),
-            nn.Linear(2, 1)
+            nn.Linear(2, 3),
+            # nn.ReLU(),
+            nn.Linear(3, 1)
             )
 
     def forward(self, x):
@@ -32,8 +32,9 @@ class TorchCortex:
                 line = list(map(float, line.strip().split(" ")))
                 data.append(line)
         data = np.matrix(data)
-        X = torch.tensor(data[:, 0:3], dtype=torch.float)
-        y = torch.tensor(data[:, 3], dtype=torch.float)
+        input_size = 2
+        X = torch.tensor(data[:, :input_size], dtype=torch.float)
+        y = torch.tensor(data[:, input_size], dtype=torch.float)
         return TensorDataset(X, y)
 
 
@@ -41,7 +42,7 @@ class TorchCortex:
         model = self.model
         loss_func = F.mse_loss
         
-        lr = 1e-7
+        lr = 1e-6
         bs = 50
 
         opt = optim.SGD(model.parameters(), lr=lr)
@@ -55,7 +56,7 @@ class TorchCortex:
                 opt.step()
                 opt.zero_grad()
             if epoch % 50 == 0:
-                print(loss)
+                print(f"Epoch: {epoch} Loss: {loss}")
         self.initialized = True
 
     def save(self, filename):
@@ -73,13 +74,17 @@ class TorchCortex:
 
 
 if __name__ == "__main__":
+    torch.manual_seed(42)
     cortex = TorchCortex()
     # dataset = cortex.load_data("../jupiter/data/data.txt")
     dataset = cortex.load_data("training_data.txt")
     cortex.train(dataset)
     cortex.save("torch_model.dump")
 
-    # cortex.load("torch_model.dump")
-    # print(cortex.predict([200, 200]))
+    row = "109 128"
+    cortex.load("torch_model.dump")
+    print(cortex.predict(list(map(float, row.split()))))
+
+    
 
 
