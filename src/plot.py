@@ -11,11 +11,10 @@ with open(filename) as f:
 
 data = np.matrix(data)
 
-pp.plot(data[:, 0], label="road#1")
-pp.plot(data[:, 1], label="road#2")
-pp.plot(data[:, 2], label="car_x")
-pp.plot(data[:, 2] - data[:, 1], label="diff")
-pp.plot(data[:, 3]*5, label="car_angle")
+for i in range(6):
+	pp.plot(data[:, i], label=f"Lidar#{i}")
+
+pp.plot(data[:, -1]*5, label="car_angle")
 pp.legend()
 pp.grid(True)
 pp.show()

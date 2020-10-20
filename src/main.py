@@ -108,12 +108,18 @@ class Game:
 
 
 	def draw_lidars(self):
+		data_row = []
+
 		road_mask = self.road.get_mask()
 		x, y = int(self.car.x), int(self.car.y)
 		readings = self.car.get_lidar_readings(road_mask, 400)
 		for r in readings:
 			pg.draw.line(self.road_surface, Colors.yellow, (x, y), r[0])
 			pg.draw.circle(self.road_surface, Colors.red, r[0], 5)
+			data_row.append(r[1])
+		
+		data_row.append(self.car.angle)
+		self.training_data.append(data_row)
 
 
 	def detect_collision(self):
@@ -134,12 +140,10 @@ class Game:
 		self.drive_or_collect_data(y, car_height)
 
 		
-
-
 	def drive_or_collect_data(self, y, car_height):
 		data_row = [self.road.x[y - car_height], self.road.x[y], self.car.x]
 		if self.mode == Game.MODE_COLLECT_DATA:
-				self.training_data.append(data_row + [self.last_command])
+			pass				
 		else:
 			angle = self.car.angle
 			desired_angle = self.torch_cortex.predict(data_row)
