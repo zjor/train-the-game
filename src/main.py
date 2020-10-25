@@ -149,13 +149,7 @@ class Game:
 			elif command == Game.COMMAND_RIGHT:
 				self.car.turn_right()
 			else:
-				pass
-			# angle = self.car.angle
-			# desired_angle = self.torch_cortex.predict(self.training_data[-1][:-1])
-			# if angle > desired_angle:
-			# 	self.car.turn_right()
-			# elif angle < desired_angle:
-			# 	self.car.turn_left()
+				pass # going straight
 
 
 	def draw_car(self):
