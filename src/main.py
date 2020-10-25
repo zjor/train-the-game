@@ -12,14 +12,13 @@ from constants import Colors
 from car import Car
 from road import Road
 
-from cortex import Cortex
 from torch_cortex import TorchCortex
 
 
 class Game:
-	COMMAND_STRAIGHT = 0
-	COMMAND_LEFT = -1
-	COMMAND_RIGHT = 1
+	COMMAND_LEFT = 0
+	COMMAND_STRAIGHT = 1	
+	COMMAND_RIGHT = 2
 
 	MODE_COLLECT_DATA = 0
 	MODE_AUTOPILOT = 1
@@ -40,22 +39,20 @@ class Game:
 		self.road_surface = pg.Surface(self.road_size)
 		self.road = Road(self.road_width, self.road_height)
 
-		self.car = Car(origin=(self.road_width / 2, self.road_height - 50), lidar_count=2)
+		self.car = Car(origin=(self.road_width / 2, self.road_height - 50), lidar_count=6)
 		self.road_shift = 0.0
 
 		self.left = int((self.width - self.road_width) / 2)
 		self.top = int((self.height - self.road_height) / 2)
 		
-		# -1 - turn left, 0 - stay straight, 1 - turn right 
+		# 0 - turn left, 1 - stay straight, 2 - turn right 
 		self.last_command = Game.COMMAND_STRAIGHT
 		self.paused = False
 
-		self.cortex = Cortex()
 		self.torch_cortex = TorchCortex()
 
 		if mode == Game.MODE_AUTOPILOT:
-			self.cortex.load("model.dump")
-			self.torch_cortex.load("torch_model.dump")
+			self.torch_cortex.load("model.pt")
 
 
 	def dump_training_data(self):
@@ -118,7 +115,8 @@ class Game:
 			pg.draw.circle(self.road_surface, Colors.red, r[0], 5)
 			data_row.append(r[1])
 		
-		data_row.append(self.car.angle)
+		# data_row.append(self.car.angle)
+		data_row.append(self.last_command)
 		self.training_data.append(data_row)
 
 
@@ -145,13 +143,19 @@ class Game:
 		if self.mode == Game.MODE_COLLECT_DATA:
 			pass				
 		else:
-			angle = self.car.angle
-			desired_angle = self.torch_cortex.predict(self.training_data[-1][:-1])
-			# desired_angle = self.cortex.predict([self.road.x[y], self.car.x])
-			if angle > desired_angle:
-				self.car.turn_right()
-			elif angle < desired_angle:
+			command = self.torch_cortex.predict(self.training_data[-1][:-1])
+			if command == Game.COMMAND_LEFT:
 				self.car.turn_left()
+			elif command == Game.COMMAND_RIGHT:
+				self.car.turn_right()
+			else:
+				pass
+			# angle = self.car.angle
+			# desired_angle = self.torch_cortex.predict(self.training_data[-1][:-1])
+			# if angle > desired_angle:
+			# 	self.car.turn_right()
+			# elif angle < desired_angle:
+			# 	self.car.turn_left()
 
 
 	def draw_car(self):
