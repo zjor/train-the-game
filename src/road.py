@@ -1,5 +1,6 @@
 import math
 import pygame as pg
+import numpy as np
 from math import sin, cos, pi
 
 from constants import Colors
@@ -25,7 +26,16 @@ class Road:
         # road curve x
         self.x = [0] * (height + layer_height)
 
+        self.k = np.random.rand(3) / 2
+        self.d = np.random.rand(3) / 2
+        self.p = np.random.rand(3)
+
         self.generate_layer(True)       
+
+
+    def generate_curvature(self, t):
+        w = 2.0 * pi * t / 20.0
+        return np.sin(w * self.d + self.p).dot(self.k)
 
 
     def generate_layer(self, full_height=False):
@@ -33,8 +43,7 @@ class Road:
         dx = self.dx
         n = max_height // dx
         for i in range(n):
-            w = 2.0 * pi * self.t / 20.0
-            f = (0.2 * sin(w / 3) + 0.5 * cos(w / 5) + 0.5 * sin(w / 7))
+            f = self.generate_curvature(self.t)
             self.t += 1
 
             cx = int((f * (self.road_width / 2) + self.width) / 2)
