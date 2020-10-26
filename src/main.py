@@ -26,6 +26,8 @@ class Game:
 	def __init__(self, mode=MODE_COLLECT_DATA):
 		self.mode = mode
 
+		self.font = pygame.font.Font('freesansbold.ttf', 24)
+
 		self.training_data_filename = "training_data.txt"
 		self.training_data = []
 
@@ -164,12 +166,23 @@ class Game:
 
 		self.handle_keyboard()
 		if not self.paused:
+			self.screen.fill(Colors.black)
 			self.draw_road()
 			self.draw_lidars()
 			self.draw_car()
 			self.detect_collision()
 			self.draw_road_surface()
-			self.drive_or_collect_data()			
+			self.drive_or_collect_data()
+
+
+		lidar_readings = self.training_data[-1][:-1]
+		for i, v in enumerate(lidar_readings):
+			text = self.font.render(f"{i}: {v}", True, (250, 50, 50))
+			text_rect = text.get_rect()
+			self.screen.blit(text, text_rect.move(10, 10 + i * text_rect.height))
+
+		# print(self.torch_cortex.predict_raw(lidar_readings))
+
 		pygame.display.flip()
 
 

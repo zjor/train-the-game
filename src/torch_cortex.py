@@ -95,15 +95,17 @@ class TorchCortex:
             optimizer.step()
 
         self.validate(criterion, X_test, y_test)
-
         self.initialized = True
+
 
     def save(self, filename):
         torch.save(self.model.state_dict(), filename)
 
+
     def load(self, filename):
         self.model.load_state_dict(torch.load(filename))
         self.initialized = True
+
 
     def predict(self, data):
         if not self.initialized:
@@ -112,6 +114,15 @@ class TorchCortex:
         y_val = self.model.forward(t)
         predicted_class = y_val.argmax()
         return predicted_class.numpy()
+
+
+    def predict_raw(self, data):
+        if not self.initialized:
+            raise Exception("Model is not initialized")
+        t = torch.tensor(data, dtype=torch.float)
+        y_val = self.model.forward(t)
+        return y_val.detach().numpy()
+
 
 
 if __name__ == "__main__":
