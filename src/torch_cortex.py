@@ -29,7 +29,7 @@ class Model(nn.Module):
 
 class TorchCortex:
     def __init__(self):
-        self.model = Model(in_features=24, hidden=[48, 32, 24])
+        self.model = Model(in_features=24, hidden=[48, 48, 48])
         self.initialized = False
 
 

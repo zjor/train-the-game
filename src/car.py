@@ -8,13 +8,13 @@ from ray import Ray
 
 
 class Car:
-    def __init__(self, origin, velocity=2.0, lidar_count=6):
+    def __init__(self, origin, velocity=2.0, lidar_count=6, angle_margin=pi/6):
         self.width = 30
         self.height = 50
         self.x, self.y = origin
         self.velocity = velocity
         self.angle = 0
-        self.lidars = np.linspace(.0, np.pi, lidar_count)
+        self.lidars = np.linspace(angle_margin, np.pi - angle_margin, lidar_count)
         self.sprite = pg.image.load("./images/car_sprite.bmp")
 
 
