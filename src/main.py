@@ -26,10 +26,11 @@ class Game:
 	def __init__(self, mode=MODE_COLLECT_DATA):
 		self.mode = mode
 
-		self.font = pygame.font.Font('freesansbold.ttf', 24)
+		self.font = pygame.font.Font('freesansbold.ttf', 18)
 
 		self.training_data_filename = "training_data.txt"
 		self.training_data = []
+		self.recording_training_data = True
 
 		self.size = self.width, self.height = 800, 600	
 		self.road_size = self.road_width, self.road_height = 400, 400
@@ -49,7 +50,7 @@ class Game:
 		
 		# 0 - turn left, 1 - stay straight, 2 - turn right 
 		self.last_command = Game.COMMAND_STRAIGHT
-		self.paused = False
+		self.paused = False		
 
 		self.torch_cortex = TorchCortex()
 
@@ -77,6 +78,10 @@ class Game:
 			if keys[pg.K_t]:
 				self.paused = True
 				self.dump_training_data()
+			elif keys[pg.K_r]:
+				self.recording_training_data = False
+			elif keys[pg.K_e]:
+				self.recording_training_data = True
 
 			self.last_command = Game.COMMAND_STRAIGHT
 
@@ -118,9 +123,9 @@ class Game:
 			pg.draw.circle(self.road_surface, Colors.red, r[0], 5)
 			data_row.append(r[1] / threshold)
 		
-		# data_row.append(self.car.angle)
-		data_row.append(self.last_command)
-		self.training_data.append(data_row)
+		if self.recording_training_data:
+			data_row.append(self.last_command)
+			self.training_data.append(data_row)
 
 
 	def detect_collision(self):
@@ -176,13 +181,25 @@ class Game:
 			self.drive_or_collect_data()
 
 
+		# printing lidar readings
 		lidar_readings = self.training_data[-1][:-1]
+		y = 0
 		for i, v in enumerate(lidar_readings):
 			text = self.font.render(f"{i}: {v:.3f}", True, (250, 50, 50))
 			text_rect = text.get_rect()
-			self.screen.blit(text, text_rect.move(10, 10 + i * text_rect.height))
+			y = 10 + i * text_rect.height
+			self.screen.blit(text, text_rect.move(10, y))
 
-		# print(self.torch_cortex.predict_raw(lidar_readings))
+		text = self.font.render(f"|training_data| = {len(self.training_data)}", False, (150, 250, 150))
+		text_rect = text.get_rect()
+		y += text_rect.height
+		self.screen.blit(text, text_rect.move(10, y))
+
+		text = self.font.render(f"{'rec' if self.recording_training_data else 'not rec'}", False, (250, 150, 150))
+		text_rect = text.get_rect()
+		y += text_rect.height
+		self.screen.blit(text, text_rect.move(10, y))
+		
 
 		pygame.display.flip()
 

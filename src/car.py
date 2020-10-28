@@ -8,7 +8,7 @@ from ray import Ray
 
 
 class Car:
-    def __init__(self, origin, velocity=2.0, lidar_count=6, angle_margin=pi/6):
+    def __init__(self, origin, velocity=2.0, lidar_count=6, angle_margin=pi/12):
         self.width = 30
         self.height = 50
         self.x, self.y = origin
