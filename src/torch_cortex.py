@@ -10,19 +10,21 @@ from sklearn.model_selection import train_test_split
 
 
 class Model(nn.Module):
-    def __init__(self, in_features=6, h1=15, h2=15, h3=15, out_features=3):
+    def __init__(self, in_features=12, hidden=[24, 24], out_features=3):
         super().__init__()
-        self.fc1 = nn.Linear(in_features,h1)    # input layer
-        self.fc2 = nn.Linear(h1, h2)            # hidden layer
-        self.fc3 = nn.Linear(h2, h3)            # hidden layer
-        self.out = nn.Linear(h3, out_features)  # output layer
+        layer_sizes = [in_features] + hidden
+        layers = []
+
+        for i in range(len(layer_sizes) - 1):
+            layers.append(nn.Linear(layer_sizes[i], layer_sizes[i + 1]))
+            layers.append(nn.ReLU(inplace=True))
+
+        layers.append(nn.Linear(layer_sizes[-1], out_features))
+        self.layers = nn.Sequential(*layers)
+
         
     def forward(self, x):
-        x = F.relu(self.fc1(x))
-        x = F.relu(self.fc2(x))
-        x = F.relu(self.fc3(x))
-        x = self.out(x)
-        return x
+        return self.layers(x)
 
 
 class TorchCortex:
@@ -40,7 +42,11 @@ class TorchCortex:
 
 
     def load_data(self, filename):
-        df = pd.read_csv(filename, header=None, names=["l1", "l2", "l3", "l4", "l5", "l6", "command"], sep="\\s+")
+        num_lidars = 12
+        lidar_cols = [f"l{i}" for i in range(num_lidars)]
+        cols = lidar_cols + ["command"]
+
+        df = pd.read_csv(filename, header=None, names=cols, sep="\\s+")
         return self.balance_classes(df)
 
 
@@ -133,10 +139,10 @@ if __name__ == "__main__":
     cortex.train(dataset)
     cortex.save(model_filename)
 
-    row = "182 253 359 113 68 70"
-    cortex.load(model_filename)    
-    pred = cortex.predict(list(map(float, row.split())))
-    print(pred)
+    # row = "182 253 359 113 68 70"
+    # cortex.load(model_filename)    
+    # pred = cortex.predict(list(map(float, row.split())))
+    # print(pred)
 
     
 

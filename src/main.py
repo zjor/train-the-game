@@ -41,7 +41,7 @@ class Game:
 		self.road_surface = pg.Surface(self.road_size)
 		self.road = Road(self.road_width, self.road_height)
 
-		self.car = Car(origin=(self.road_width / 2, self.road_height - 50), lidar_count=6)
+		self.car = Car(origin=(self.road_width / 2, self.road_height - 50), lidar_count=12)
 		self.road_shift = 0.0
 
 		self.left = int((self.width - self.road_width) / 2)
@@ -187,6 +187,8 @@ class Game:
 
 
 def main():
+	np.random.seed(42)
+
 	pygame.init()
 	clock = pygame.time.Clock()
 	# game = Game(mode=Game.MODE_COLLECT_DATA)
