@@ -42,6 +42,9 @@ class Road:
         max_height = (self.layer_height + self.height) if full_height else self.layer_height
         dx = self.dx
         n = max_height // dx
+
+        ys = [0] * n * dx
+
         for i in range(n):
             f = self.generate_curvature(self.t)
             self.t += 1
@@ -50,6 +53,7 @@ class Road:
             self.x[(n - i - 1) * dx: (n - i)*dx] = [cx] * dx
 
             y = (n - i - 1) * dx
+            ys[y] = cx
             left = int(cx - self.road_width / 2)
             right = int(cx + self.road_width / 2)
 
@@ -67,7 +71,25 @@ class Road:
             if i % 5 != 0:
                 pg.draw.rect(self.traffic_line_surface, Colors.white, pg.Rect(cx, y, dx, dx))
 
+        p = 0.3
+        should_draw_obstacle = np.random.rand() < p
+        if should_draw_obstacle:
+            y = self.layer_height // 2
+            cx = ys[y]
+            left = int(cx - self.road_width / 2)
+            right = int(cx + self.road_width / 2)
+            ox = (left + cx) // 2 if np.random.rand() > 0.5 else (right + cx) // 2
+            self.draw_obstacle((ox, y), self.road_width * 3 // 5 // 2)        
+
         self.offset = self.layer_height
+
+
+    def draw_obstacle(self, position, width, height=50):
+        surf = pg.Surface((width, height))
+        surf.fill(Colors.red)
+        surf = pg.transform.rotate(surf, np.random.randint(-45, 45))
+        rect = surf.get_rect()
+        self.surface.blit(surf, rect.move(position).move(-rect.centerx, -rect.centery))
 
 
     def _scroll(self, surface):
@@ -106,17 +128,20 @@ if __name__ == "__main__":
     import sys
     from car import Car
 
+    np.random.seed(77)
+
     pg.init()
     pg.display.set_caption("Road Test")
     size = width, height = 800, 600
     screen = pg.display.set_mode(size)
 
     road = Road(width, height)
+    road.draw_obstacle((200, 400), 50)
     road.draw(screen)
     mask = road.get_mask()
     # mask.to_surface(screen)
 
-    origin = (width / 2, height - 150)
+    origin = (width // 2, height - 150)
 
     car = Car(origin=origin)
     readings = car.get_lidar_readings(mask, 400)

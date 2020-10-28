@@ -17,4 +17,4 @@ class Ray:
             t_x, t_y = x + d * cos(self.theta), y - d * sin(self.theta)            
             d += 1
             
-        return ((t_x, t_y), d)
+        return ((int(t_x), int(t_y)), d)
