@@ -128,7 +128,7 @@ if __name__ == "__main__":
     import sys
     from car import Car
 
-    np.random.seed(77)
+    np.random.seed(101)
 
     pg.init()
     pg.display.set_caption("Road Test")

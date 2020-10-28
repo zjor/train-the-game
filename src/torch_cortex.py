@@ -29,7 +29,7 @@ class Model(nn.Module):
 
 class TorchCortex:
     def __init__(self):
-        self.model = Model()
+        self.model = Model(in_features=24, hidden=[48, 32, 24])
         self.initialized = False
 
 
@@ -42,7 +42,7 @@ class TorchCortex:
 
 
     def load_data(self, filename):
-        num_lidars = 12
+        num_lidars = 24
         lidar_cols = [f"l{i}" for i in range(num_lidars)]
         cols = lidar_cols + ["command"]
 
@@ -85,7 +85,7 @@ class TorchCortex:
         criterion = nn.CrossEntropyLoss()
         optimizer = torch.optim.Adam(model.parameters(), lr=0.01)
         
-        epochs = 5000
+        epochs = 10000
         losses = []
 
         for i in range(epochs):
