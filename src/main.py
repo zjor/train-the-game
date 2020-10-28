@@ -111,11 +111,12 @@ class Game:
 
 		road_mask = self.road.get_mask()
 		x, y = int(self.car.x), int(self.car.y)
-		readings = self.car.get_lidar_readings(road_mask, 400)
+		threshold = self.road.road_width
+		readings = self.car.get_lidar_readings(road_mask, threshold)
 		for r in readings:
 			pg.draw.line(self.road_surface, Colors.yellow, (x, y), r[0])
 			pg.draw.circle(self.road_surface, Colors.red, r[0], 5)
-			data_row.append(r[1])
+			data_row.append(r[1] / threshold)
 		
 		# data_row.append(self.car.angle)
 		data_row.append(self.last_command)
@@ -177,7 +178,7 @@ class Game:
 
 		lidar_readings = self.training_data[-1][:-1]
 		for i, v in enumerate(lidar_readings):
-			text = self.font.render(f"{i}: {v}", True, (250, 50, 50))
+			text = self.font.render(f"{i}: {v:.3f}", True, (250, 50, 50))
 			text_rect = text.get_rect()
 			self.screen.blit(text, text_rect.move(10, 10 + i * text_rect.height))
 

@@ -20,7 +20,7 @@ class Car:
 
     def get_lidar_readings(self, road_mask, threshold):
         readings = []
-        for theta in self.lidars:
+        for i, theta in enumerate(self.lidars):
             ray = Ray(origin=(self.x, self.y), theta=(theta + math.radians(self.angle)))
             readings.append(ray.get_collision(road_mask, threshold))
 
