@@ -65,7 +65,9 @@ class TorchCortex:
                 # print(f'{i+1:2}. {str(y_val):38}  {y_test[i]}')
                 if y_val.argmax().item() == y_test[i]:
                     correct += 1
-        print(f'\n{correct} out of {len(y_test)} = {100*correct/len(y_test):.2f}% correct')              
+        acc = correct/len(y_test)
+        print(f'\n{correct} out of {len(y_test)} = {100 * acc:.2f}% correct')
+        return acc
 
 
     def train(self, df):
@@ -102,8 +104,9 @@ class TorchCortex:
             loss.backward()
             optimizer.step()
 
-        self.validate(criterion, X_test, y_test)
+        acc = self.validate(criterion, X_test, y_test)
         self.initialized = True
+        return acc
 
 
     def save(self, filename):
@@ -138,23 +141,27 @@ class TorchCortex:
 
 
 class CortexWorker(multiprocessing.Process):
-    def __init__(self, queue, data):
-        super(CortexWorker, self).__init__()
-        self.queue = queue
-        self.data = data
+    def __init__(self, task_queue, result_queue):
+        super(CortexWorker, self).__init__()        
+        self.daemon = True
+
+        self.task_queue = task_queue
+        self.result_queue = result_queue
         self.cortex = TorchCortex()
 
 
     def run(self):
-        num_lidars = self.data.shape[1] - 1
-        lidar_cols = [f"l{i}" for i in range(num_lidars)]
-        cols = lidar_cols + ["command"]
+        torch.manual_seed(42)
+        while True:
+            data = self.task_queue.get()
+            num_lidars = data.shape[1] - 1
+            lidar_cols = [f"l{i}" for i in range(num_lidars)]
+            cols = lidar_cols + ["command"]
 
-        df = pd.DataFrame(self.data, columns=cols)
-        df = self.cortex.balance_classes(df)
-        self.cortex.train(df)
-        self.queue.put(self.cortex.model.state_dict())
-
+            df = pd.DataFrame(data, columns=cols)
+            df = self.cortex.balance_classes(df)
+            acc = self.cortex.train(df)
+            self.result_queue.put((self.cortex.model.state_dict(), acc))
 
 
 
@@ -181,26 +188,32 @@ if __name__ == "__main__":
     # cortex.load(model_filename)    
 
 
+    task_queue = multiprocessing.Queue()
+    result_queue = multiprocessing.Queue()    
+    w = CortexWorker(task_queue, result_queue)
+    w.start()
 
-    q = multiprocessing.Queue()
     data = load_as_numpy(input_filename)
     print("Data loaded")
-    w = CortexWorker(q, data)
-    w.start()
-    print("Trainging...", end="")
-    while w.is_alive():
-        time.sleep(1)
-        print(".", end="")
     
-    state = q.get()
-    
-    cortex = TorchCortex()
-    cortex.load_state(state)
-    row = "1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 0.6041666666666666 0.5166666666666667 0.4625 0.4375 0.4083333333333333 0.3875 0.36666666666666664 0.3458333333333333 0.325 0.30416666666666664 0.2791666666666667 0.2708333333333333 0.25416666666666665"
-    pred = cortex.predict(list(map(float, row.split())))
-    print(pred)
+    for i in range(5):
+        task_queue.put(data)
 
+        print("Trainging...", end="")
+        while result_queue.empty():
+            time.sleep(1)
+            print(".", end="")
+        
+        result = result_queue.get(False)
 
+        state, acc = result if result else (None, None)
+        print(f"Trained accuracy: {acc}")
+
+        cortex = TorchCortex()
+        cortex.load_state(state)
+        row = "1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 0.6041666666666666 0.5166666666666667 0.4625 0.4375 0.4083333333333333 0.3875 0.36666666666666664 0.3458333333333333 0.325 0.30416666666666664 0.2791666666666667 0.2708333333333333 0.25416666666666665"
+        pred = cortex.predict(list(map(float, row.split())))
+        print(pred)
 
     # w.join()
 
