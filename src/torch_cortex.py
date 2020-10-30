@@ -8,6 +8,8 @@ from torch import nn, optim
 from torch.utils.data import TensorDataset, DataLoader
 from sklearn.model_selection import train_test_split
 
+import multiprocessing
+
 
 class Model(nn.Module):
     def __init__(self, in_features=12, hidden=[24, 24], out_features=3):
@@ -85,7 +87,7 @@ class TorchCortex:
         criterion = nn.CrossEntropyLoss()
         optimizer = torch.optim.Adam(model.parameters(), lr=0.01)
         
-        epochs = 10000
+        epochs = 1000
         losses = []
 
         for i in range(epochs):
@@ -112,6 +114,11 @@ class TorchCortex:
         self.model.load_state_dict(torch.load(filename))
         self.initialized = True
 
+    
+    def load_state(self, state):
+        self.model.load_state_dict(state)
+        self.initialized = True        
+
 
     def predict(self, data):
         if not self.initialized:
@@ -130,19 +137,75 @@ class TorchCortex:
         return y_val.detach().numpy()
 
 
+class CortexWorker(multiprocessing.Process):
+    def __init__(self, queue, data):
+        super(CortexWorker, self).__init__()
+        self.queue = queue
+        self.data = data
+        self.cortex = TorchCortex()
+
+
+    def run(self):
+        num_lidars = self.data.shape[1] - 1
+        lidar_cols = [f"l{i}" for i in range(num_lidars)]
+        cols = lidar_cols + ["command"]
+
+        df = pd.DataFrame(self.data, columns=cols)
+        df = self.cortex.balance_classes(df)
+        self.cortex.train(df)
+        self.queue.put(self.cortex.model.state_dict())
+
+
+
+
+def load_as_numpy(filename):
+    data = []
+    with open(filename, 'r') as f:
+        for line in f.readlines():
+            line = list(map(float, line.strip().split(" ")))
+            data.append(line)
+    return np.matrix(data)
+
+
 
 if __name__ == "__main__":
+    import time
     torch.manual_seed(42)
-    cortex = TorchCortex()
-    model_filename = "model.pt"
-    dataset = cortex.load_data("training_data.txt")
-    cortex.train(dataset)
-    cortex.save(model_filename)
+    input_filename = "training_data.txt"
+    # cortex = TorchCortex()
+    # model_filename = "model.pt"
+    # dataset = cortex.load_data("training_data.txt")
+    # cortex.train(dataset)
+    # cortex.save(model_filename)
 
-    # row = "182 253 359 113 68 70"
     # cortex.load(model_filename)    
-    # pred = cortex.predict(list(map(float, row.split())))
-    # print(pred)
+
+
+
+    q = multiprocessing.Queue()
+    data = load_as_numpy(input_filename)
+    print("Data loaded")
+    w = CortexWorker(q, data)
+    w.start()
+    print("Trainging...", end="")
+    while w.is_alive():
+        time.sleep(1)
+        print(".", end="")
+    
+    state = q.get()
+    
+    cortex = TorchCortex()
+    cortex.load_state(state)
+    row = "1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 0.6041666666666666 0.5166666666666667 0.4625 0.4375 0.4083333333333333 0.3875 0.36666666666666664 0.3458333333333333 0.325 0.30416666666666664 0.2791666666666667 0.2708333333333333 0.25416666666666665"
+    pred = cortex.predict(list(map(float, row.split())))
+    print(pred)
+
+
+
+    # w.join()
+
+    
+
 
     
 
