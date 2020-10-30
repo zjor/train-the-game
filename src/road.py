@@ -4,7 +4,6 @@ import numpy as np
 from math import sin, cos, pi
 
 from constants import Colors
-from ray import Ray
 
 
 class Road:
