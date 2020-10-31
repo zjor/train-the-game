@@ -33,6 +33,7 @@ class Game:
         self.training_data_filename = "training_data.txt"
         self.training_data = []
         self.recording_training_data = True
+        self.data_row = []
 
         self.size = self.width, self.height = 800, 600  
         self.road_size = self.road_width, self.road_height = 400, 400
@@ -83,8 +84,11 @@ class Game:
         else:
 
             if keys[pg.K_t]:
-                self.paused = True
-                self.dump_training_data()
+                # self.paused = True
+                # self.dump_training_data()
+                self.mode = Game.MODE_COLLECT_DATA
+            elif keys[pg.K_a]:
+                self.mode = Game.MODE_AUTOPILOT
             elif keys[pg.K_r]:
                 self.recording_training_data = False
             elif keys[pg.K_e]:
@@ -119,7 +123,7 @@ class Game:
 
 
     def draw_lidars(self):
-        data_row = []
+        self.data_row = []
 
         road_mask = self.road.get_mask()
         x, y = int(self.car.x), int(self.car.y)
@@ -128,18 +132,20 @@ class Game:
         for r in readings:
             pg.draw.line(self.road_surface, Colors.yellow, (x, y), r[0])
             pg.draw.circle(self.road_surface, Colors.red, r[0], 5)
-            data_row.append(r[1] / threshold)
+            self.data_row.append(r[1] / threshold)
         
-        if self.recording_training_data:
-            data_row.append(self.last_command)
-            self.training_data.append(data_row)
+        if self.mode == Game.MODE_COLLECT_DATA:
+            if self.recording_training_data:
+                self.training_data.append(self.data_row + [self.last_command])
 
-        if len(self.training_data) % 200 == 0:
-            self.task_queue.put(np.matrix(self.training_data[-200]))
+            batch_size = 500
+            if len(self.training_data) % batch_size == 0:
+                self.task_queue.put(np.matrix(self.training_data[-batch_size:]))
 
-        if not self.result_queue.empty():
-            state, acc = self.result_queue.get(False)
-            print(f"Accuracy: {acc}")
+            if not self.result_queue.empty():
+                state, acc = self.result_queue.get(False)
+                self.torch_cortex.load_state(state)
+                print(f"Accuracy: {acc}")                
 
 
     def detect_collision(self):
@@ -165,7 +171,7 @@ class Game:
         if self.mode == Game.MODE_COLLECT_DATA:
             pass                
         else:
-            command = self.torch_cortex.predict(self.training_data[-1][:-1])
+            command = self.torch_cortex.predict(self.data_row)
             if command == Game.COMMAND_LEFT:
                 self.car.turn_left()
             elif command == Game.COMMAND_RIGHT:

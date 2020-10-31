@@ -32,7 +32,6 @@ class Model(nn.Module):
 class TorchCortex:
     def __init__(self):
         self.model = Model(in_features=24, hidden=[48, 48, 48])
-        self.initialized = False
 
 
     def balance_classes(self, df):
@@ -89,7 +88,7 @@ class TorchCortex:
         criterion = nn.CrossEntropyLoss()
         optimizer = torch.optim.Adam(model.parameters(), lr=0.01)
         
-        epochs = 1000
+        epochs = 5000
         losses = []
 
         for i in range(epochs):
@@ -105,7 +104,6 @@ class TorchCortex:
             optimizer.step()
 
         acc = self.validate(criterion, X_test, y_test)
-        self.initialized = True
         return acc
 
 
@@ -115,17 +113,13 @@ class TorchCortex:
 
     def load(self, filename):
         self.model.load_state_dict(torch.load(filename))
-        self.initialized = True
 
     
     def load_state(self, state):
         self.model.load_state_dict(state)
-        self.initialized = True        
 
 
     def predict(self, data):
-        if not self.initialized:
-            raise Exception("Model is not initialized")
         t = torch.tensor(data, dtype=torch.float)
         y_val = self.model.forward(t)
         predicted_class = y_val.argmax()
@@ -133,8 +127,6 @@ class TorchCortex:
 
 
     def predict_raw(self, data):
-        if not self.initialized:
-            raise Exception("Model is not initialized")
         t = torch.tensor(data, dtype=torch.float)
         y_val = self.model.forward(t)
         return y_val.detach().numpy()
