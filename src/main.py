@@ -15,6 +15,7 @@ from car import Car
 from road import Road
 
 from torch_cortex import TorchCortex, CortexWorker
+from pg_utils import draw_matrix
 
 
 class Game:
@@ -56,6 +57,7 @@ class Game:
         self.paused = False     
 
         self.torch_cortex = TorchCortex()
+        self.nn_slices = self.update_nn_slices()
 
         if mode == Game.MODE_AUTOPILOT:
             self.torch_cortex.load("model.pt")
@@ -66,6 +68,17 @@ class Game:
         self.cortex_worker.start()
 
 
+    def update_nn_slices(self):
+        slices = []
+        dx = 2
+        for param in self.torch_cortex.model.parameters():
+            weights = param.detach().numpy()
+            if len(weights.shape) == 2:
+                slices.append(draw_matrix(weights, dx))
+        return slices
+
+
+    # deprecated
     def dump_training_data(self):
         with open(self.training_data_filename, "w") as f:
             for line in self.training_data:
@@ -138,13 +151,16 @@ class Game:
             if self.recording_training_data:
                 self.training_data.append(self.data_row + [self.last_command])
 
+            # send training data to CortexWorker
             batch_size = 500
             if len(self.training_data) % batch_size == 0:
                 self.task_queue.put(np.matrix(self.training_data[-batch_size:]))
 
+            # update model params if training completed
             if not self.result_queue.empty():
                 state, acc = self.result_queue.get(False)
                 self.torch_cortex.load_state(state)
+                self.nn_slices = self.update_nn_slices()
                 print(f"Accuracy: {acc}")                
 
 
@@ -207,7 +223,7 @@ class Game:
         for i, v in enumerate(lidar_readings):
             text = self.font.render(f"{i}: {v:.3f}", True, (250, 50, 50))
             text_rect = text.get_rect()
-            y = 10 + i * text_rect.height
+            y = 5 + i * text_rect.height
             self.screen.blit(text, text_rect.move(10, y))
 
         text = self.font.render(f"|training_data| = {len(self.training_data)}", False, (150, 250, 150))
@@ -219,6 +235,11 @@ class Game:
         text_rect = text.get_rect()
         y += text_rect.height
         self.screen.blit(text, text_rect.move(10, y))
+
+        for nn_slice in self.nn_slices:
+            rect = nn_slice.get_rect()
+            self.screen.blit(nn_slice, rect.move(10, y + 10))
+            y += rect.height + 10
         
 
         pygame.display.flip()
