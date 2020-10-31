@@ -41,8 +41,6 @@ class Game:
 
         self.screen = pg.display.set_mode(self.size)
 
-        pg.display.set_caption("Train the Game")
-
         self.road_surface = pg.Surface(self.road_size)
         self.road = Road(self.road_width, self.road_height)
 
@@ -67,10 +65,12 @@ class Game:
         self.cortex_worker = CortexWorker(self.task_queue, self.result_queue)
         self.cortex_worker.start()
 
+        self.message = "Collecting data"
+
 
     def update_nn_slices(self):
         slices = []
-        dx = 2
+        dx = 3
         for param in self.torch_cortex.model.parameters():
             weights = param.detach().numpy()
             if len(weights.shape) == 2:
@@ -100,8 +100,10 @@ class Game:
                 # self.paused = True
                 # self.dump_training_data()
                 self.mode = Game.MODE_COLLECT_DATA
+                self.message = "Collecting data"
             elif keys[pg.K_a]:
                 self.mode = Game.MODE_AUTOPILOT
+                self.message = "Autopilot"
             elif keys[pg.K_r]:
                 self.recording_training_data = False
             elif keys[pg.K_e]:
@@ -152,16 +154,18 @@ class Game:
                 self.training_data.append(self.data_row + [self.last_command])
 
             # send training data to CortexWorker
-            batch_size = 500
+            batch_size = 1000
             if len(self.training_data) % batch_size == 0:
                 self.task_queue.put(np.matrix(self.training_data[-batch_size:]))
+                self.message = "Training..."
 
             # update model params if training completed
             if not self.result_queue.empty():
                 state, acc = self.result_queue.get(False)
                 self.torch_cortex.load_state(state)
                 self.nn_slices = self.update_nn_slices()
-                print(f"Accuracy: {acc}")                
+                self.message = f"Accuracy: {acc:.2f}"
+                print(f"Accuracy: {acc}")
 
 
     def detect_collision(self):
@@ -236,20 +240,28 @@ class Game:
         y += text_rect.height
         self.screen.blit(text, text_rect.move(10, y))
 
+        text = self.font.render(self.message, False, (250, 150, 250))
+        text_rect = text.get_rect()
+        y += text_rect.height
+        self.screen.blit(text, text_rect.move(10, y))
+
+        y = 10
+        x = self.left + self.road_width + 10
         for nn_slice in self.nn_slices:
             rect = nn_slice.get_rect()
-            self.screen.blit(nn_slice, rect.move(10, y + 10))
+            self.screen.blit(nn_slice, rect.move(x, y + 10))
             y += rect.height + 10
         
 
-        pygame.display.flip()
+        pg.display.flip()
 
 
 def main():
     np.random.seed(77)
 
-    pygame.init()
-    clock = pygame.time.Clock()
+    pg.init()
+    pg.display.set_caption("Train the Game")
+    clock = pg.time.Clock()
     game = Game(mode=Game.MODE_COLLECT_DATA)
     # game = Game(mode=Game.MODE_AUTOPILOT)
 
