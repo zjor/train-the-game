@@ -32,7 +32,7 @@ class Car:
         self.velocity = velocity
         self.angle = 0
         self.lidars = np.linspace(angle_margin, np.pi - angle_margin, lidar_count)
-        self.sprite = pg.image.load("./images/car_sprite.bmp")
+        self.sprite = pg.image.load("./images/car.bmp")
 
 
     def get_lidar_readings(self, road_mask, threshold):
@@ -82,7 +82,7 @@ if __name__ == "__main__":
     screen = pg.display.set_mode(size)
 
     car = Car((100, 100))
-    car.angle = 30
+    car.angle = 0
     car.draw(screen)
 
     pg.display.flip()
