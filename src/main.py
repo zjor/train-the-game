@@ -124,7 +124,7 @@ class Game:
             self.training_data.append(self.data_row + [self.last_command])
 
             # send training data to CortexWorker
-            batch_size = 1000
+            batch_size = 500
             if len(self.training_data) % batch_size == 0:
                 self.task_queue.put(np.matrix(self.training_data[-batch_size:]))
 
