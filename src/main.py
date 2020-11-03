@@ -31,7 +31,7 @@ class Game:
         self.data_row = []
 
         self.size = self.width, self.height = 800, 600
-        self.road_size = self.road_width, self.road_height = 400, 400
+        self.road_size = self.road_width, self.road_height = 400, 590
 
         self.screen = pg.display.set_mode(self.size)
 
@@ -198,6 +198,14 @@ class Game:
         y = self.draw_text((5, y + 5), self.font, "p - toggle pause")
         return y
 
+    def draw_nn_slices(self):
+        x = self.left + self.road_width + 10
+        y = self.draw_text((x, 5), self.font_bold, "NN weights")
+        for nn_slice in self.nn_slices:
+            rect = nn_slice.get_rect()
+            self.screen.blit(nn_slice, rect.move(x, y + 5))
+            y += rect.height + 5
+
     def loop(self):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -212,15 +220,8 @@ class Game:
             self.detect_collision()
             self.draw_road_surface()
             self.drive_or_collect_data()
-
-        self.draw_info()
-
-        y = 10
-        x = self.left + self.road_width + 10
-        for nn_slice in self.nn_slices:
-            rect = nn_slice.get_rect()
-            self.screen.blit(nn_slice, rect.move(x, y + 10))
-            y += rect.height + 10
+            self.draw_info()
+            self.draw_nn_slices()
 
         pg.display.flip()
 
