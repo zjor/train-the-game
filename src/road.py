@@ -1,12 +1,20 @@
-import math
 import pygame as pg
 import numpy as np
-from math import sin, cos, pi
+from math import pi
 
 from constants import Colors
 
 
+def _scroll(surface):
+    buf = surface.copy()
+    surface.fill(Colors.black)
+    surface.blit(buf, (0, 1))
+
+
 class Road:
+
+    OBSTACLE_FILENAMES = [f"./images/car-{i}.bmp" for i in range(1, 6)]
+
     def __init__(self, width, height, layer_height=100):
         self.width = width
         self.height = height
@@ -31,11 +39,9 @@ class Road:
 
         self.generate_layer(True)       
 
-
     def generate_curvature(self, t):
         w = 2.0 * pi * t / 20.0
         return np.sin(w * self.d + self.p).dot(self.k)
-
 
     def generate_layer(self, full_height=False):
         max_height = (self.layer_height + self.height) if full_height else self.layer_height
@@ -78,28 +84,19 @@ class Road:
             left = int(cx - self.road_width / 2)
             right = int(cx + self.road_width / 2)
             ox = (left + cx) // 2 if np.random.rand() > 0.5 else (right + cx) // 2
-            self.draw_obstacle((ox, y), self.road_width * 3 // 5 // 2)        
+            self.draw_obstacle((ox, y))
 
         self.offset = self.layer_height
 
-
-    def draw_obstacle(self, position, width, height=50):
-        surf = pg.Surface((width, height))
-        surf.fill(Colors.red)
-        surf = pg.transform.rotate(surf, np.random.randint(-45, 45))
+    def draw_obstacle(self, position):
+        filename = Road.OBSTACLE_FILENAMES[np.random.randint(0, len(Road.OBSTACLE_FILENAMES))]
+        surf = pg.image.load(filename)
         rect = surf.get_rect()
         self.surface.blit(surf, rect.move(position).move(-rect.centerx, -rect.centery))
 
-
-    def _scroll(self, surface):
-        buf = surface.copy()
-        surface.fill(Colors.black)
-        surface.blit(buf, (0, 1))
-
-
     def scroll(self):
-        self._scroll(self.surface)
-        self._scroll(self.traffic_line_surface)
+        _scroll(self.surface)
+        _scroll(self.traffic_line_surface)
 
         self.x = [0] + self.x[:-1]
 
@@ -107,14 +104,12 @@ class Road:
         if self.offset <= 0:
             self.generate_layer()
 
-
-    def draw(self, screen):
-        screen.blit(self.surface, (0, -self.layer_height))
-        copy = screen.copy()
-        screen.blit(self.traffic_line_surface, (0, -self.layer_height))
+    def draw(self, dst):
+        dst.blit(self.surface, (0, -self.layer_height))
+        copy = dst.copy()
+        dst.blit(self.traffic_line_surface, (0, -self.layer_height))
         return copy
 
-    
     def get_mask(self):
         mask_surface = pg.Surface((self.width, self.height))
         mask_surface.blit(self.surface, (0, -self.layer_height))
@@ -122,12 +117,11 @@ class Road:
         return pg.mask.from_surface(mask_surface)
 
 
-
 if __name__ == "__main__":
     import sys
     from car import Car
 
-    np.random.seed(101)
+    np.random.seed(42)
 
     pg.init()
     pg.display.set_caption("Road Test")
@@ -135,14 +129,15 @@ if __name__ == "__main__":
     screen = pg.display.set_mode(size)
 
     road = Road(width, height)
-    road.draw_obstacle((200, 400), 50)
+    road.draw_obstacle((200, 250))
+    road.draw_obstacle((200, 350))
+    road.draw_obstacle((200, 450))
     road.draw(screen)
     mask = road.get_mask()
-    # mask.to_surface(screen)
 
     origin = (width // 2, height - 150)
 
-    car = Car(origin=origin)
+    car = Car(origin)
     readings = car.get_lidar_readings(mask, 400)
     for r in readings:
         pg.draw.line(screen, Colors.yellow, origin, r[0])
@@ -157,4 +152,3 @@ if __name__ == "__main__":
             if event.type == pg.QUIT:
                 sys.exit()
 
-    

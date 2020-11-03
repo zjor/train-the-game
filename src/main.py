@@ -262,7 +262,7 @@ def main():
     pg.init()
     pg.display.set_caption("Train the Game")
     clock = pg.time.Clock()
-    game = Game(mode=Game.MODE_COLLECT_DATA)
+    game = Game(Game.MODE_COLLECT_DATA)
     # game = Game(mode=Game.MODE_AUTOPILOT)
 
     while True:
