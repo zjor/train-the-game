@@ -8,7 +8,6 @@ def draw_matrix(matrix, dx):
     max_val = matrix.max()
     min_val = matrix.min()
 
-
     for i in range(rows):
         for j in range(cols):
             color = int(255.0 * (matrix[i, j] - min_val) / (max_val - min_val))
@@ -31,6 +30,12 @@ if __name__ == "__main__":
 
     screen.blit(surf, surf.get_rect().move(100, 100))
 
+    font = pg.font.SysFont('verdanattf', 18)
+    text = font.render("Hello world", True, (250, 150, 150))
+    screen.blit(text, text.get_rect())
+
+    for f in pg.font.get_fonts():
+        print(f)
 
     pg.display.flip()
 

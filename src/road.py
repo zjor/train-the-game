@@ -12,7 +12,6 @@ def _scroll(surface):
 
 
 class Road:
-
     OBSTACLE_FILENAMES = [f"./images/car-{i}.bmp" for i in range(1, 6)]
 
     def __init__(self, width, height, layer_height=100):
@@ -24,7 +23,7 @@ class Road:
 
         self.traffic_line_surface = pg.Surface((width, height + layer_height))
         self.traffic_line_surface.set_colorkey(Colors.black)
-        
+
         self.offset = layer_height
         self.road_width = int(3 * width / 5)
         self.t = 0.0
@@ -37,7 +36,7 @@ class Road:
         self.d = np.random.rand(3) / 2
         self.p = np.random.rand(3)
 
-        self.generate_layer(True)       
+        self.generate_layer(True)
 
     def generate_curvature(self, t):
         w = 2.0 * pi * t / 20.0
@@ -55,7 +54,7 @@ class Road:
             self.t += 1
 
             cx = int((f * (self.road_width / 2) + self.width) / 2)
-            self.x[(n - i - 1) * dx: (n - i)*dx] = [cx] * dx
+            self.x[(n - i - 1) * dx: (n - i) * dx] = [cx] * dx
 
             y = (n - i - 1) * dx
             ys[y] = cx
@@ -66,12 +65,12 @@ class Road:
             pg.draw.rect(self.surface, Colors.green, pg.Rect(0, y, left, dx))
             pg.draw.rect(self.surface, Colors.green, pg.Rect(right, y, self.width - right, dx))
 
-            pg.draw.rect(self.surface, 
-                Colors.red if int(i / 2) % 2 == 0 else Colors.light_grey, 
-                pg.Rect(right, y, dx, dx))
-            pg.draw.rect(self.surface, 
-                Colors.red if int(i / 2) % 2 == 0 else Colors.light_grey, 
-                pg.Rect(left - dx, y, dx, dx))
+            pg.draw.rect(self.surface,
+                         Colors.red if int(i / 2) % 2 == 0 else Colors.light_grey,
+                         pg.Rect(right, y, dx, dx))
+            pg.draw.rect(self.surface,
+                         Colors.red if int(i / 2) % 2 == 0 else Colors.light_grey,
+                         pg.Rect(left - dx, y, dx, dx))
 
             if i % 5 != 0:
                 pg.draw.rect(self.traffic_line_surface, Colors.white, pg.Rect(cx, y, dx, dx))
@@ -156,4 +155,3 @@ if __name__ == "__main__":
         for event in pg.event.get():
             if event.type == pg.QUIT:
                 sys.exit()
-

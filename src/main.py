@@ -1,14 +1,9 @@
 import sys
-import math
 import pygame
-import random
-
 import numpy as np
 import pygame as pg
 
 import multiprocessing
-
-from math import sin, cos, pi
 
 from constants import Colors
 from car import Car
@@ -29,7 +24,7 @@ class Game:
     def __init__(self, mode=MODE_COLLECT_DATA):
         self.mode = mode
 
-        self.font = pygame.font.Font('freesansbold.ttf', 18)
+        self.font = pg.font.SysFont('verdanattf', 18)
 
         self.training_data_filename = "training_data.txt"
         self.training_data = []
@@ -230,17 +225,17 @@ class Game:
             y = 5 + i * text_rect.height
             self.screen.blit(text, text_rect.move(10, y))
 
-        text = self.font.render(f"|training_data| = {len(self.training_data)}", False, (150, 250, 150))
+        text = self.font.render(f"|training_data| = {len(self.training_data)}", True, (150, 250, 150))
         text_rect = text.get_rect()
         y += text_rect.height
         self.screen.blit(text, text_rect.move(10, y))
 
-        text = self.font.render(f"{'rec' if self.recording_training_data else 'not rec'}", False, (250, 150, 150))
+        text = self.font.render(f"{'rec' if self.recording_training_data else 'not rec'}", True, (250, 150, 150))
         text_rect = text.get_rect()
         y += text_rect.height
         self.screen.blit(text, text_rect.move(10, y))
 
-        text = self.font.render(self.message, False, (250, 150, 250))
+        text = self.font.render(self.message, True, (250, 150, 250))
         text_rect = text.get_rect()
         y += text_rect.height
         self.screen.blit(text, text_rect.move(10, y))
