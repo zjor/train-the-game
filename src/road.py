@@ -81,16 +81,21 @@ class Road:
         if should_draw_obstacle:
             y = self.layer_height // 2
             cx = ys[y]
+
+            cx_dot = (ys[y + dx] - ys[y - dx]) / (2.0 * dx)
+            angle = np.degrees(np.arctan(cx_dot))
+
             left = int(cx - self.road_width / 2)
             right = int(cx + self.road_width / 2)
             ox = (left + cx) // 2 if np.random.rand() > 0.5 else (right + cx) // 2
-            self.draw_obstacle((ox, y))
+            self.draw_obstacle((ox, y), angle)
 
         self.offset = self.layer_height
 
-    def draw_obstacle(self, position):
+    def draw_obstacle(self, position, angle=0):
         filename = Road.OBSTACLE_FILENAMES[np.random.randint(0, len(Road.OBSTACLE_FILENAMES))]
         surf = pg.image.load(filename)
+        surf = pg.transform.rotate(surf, angle)
         rect = surf.get_rect()
         self.surface.blit(surf, rect.move(position).move(-rect.centerx, -rect.centery))
 
@@ -131,7 +136,7 @@ if __name__ == "__main__":
     road = Road(width, height)
     road.draw_obstacle((200, 250))
     road.draw_obstacle((200, 350))
-    road.draw_obstacle((200, 450))
+    road.draw_obstacle((200, 450), angle=30)
     road.draw(screen)
     mask = road.get_mask()
 
