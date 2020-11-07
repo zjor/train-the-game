@@ -9,28 +9,11 @@ The game itself is just a car riding the road. There are possible turns and obst
 ## NN data
 
 ### Input
-
-- a patch of the road in front of the car
-- a car's distance from the right edge of the road
-- a car's angle relative to the North
-- user's angle
-
+Lidar readings
 
 ### Output
+Command: (Left, Right, Straight)
 
-A new angle of the car.
-
-
-## Technologies
-
+## Frameworks
 - PyTorch
 - PyGame
-
-
-## TODO
-- refactor PyTorch code with (https://pytorch.org/tutorials/beginner/nn_tutorial.html)
-- add gifs and graphs to README
-- first article to medium
-- train NN to predict commands without rotating a car (so that training data contains more examples of LEFT, RIGHT commands)
-- switch to image processing in front of the car
-- add obstacles

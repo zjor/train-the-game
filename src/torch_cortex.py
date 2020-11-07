@@ -26,7 +26,7 @@ class Model(nn.Module):
 
 class TorchCortex:
     def __init__(self):
-        self.model = Model(in_features=24, hidden=[48, 48, 48])
+        self.model = Model(in_features=24, hidden=[56, 48, 48])
 
     def balance_classes(self, df):
         min_count = df["command"].value_counts().min()
@@ -74,9 +74,9 @@ class TorchCortex:
 
         model = self.model
         criterion = nn.CrossEntropyLoss()
-        optimizer = torch.optim.Adam(model.parameters(), lr=0.01)
+        optimizer = torch.optim.Adam(model.parameters(), lr=0.005)
 
-        epochs = 5000
+        epochs = 7000
         losses = []
 
         for i in range(epochs):
